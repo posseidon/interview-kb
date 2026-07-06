@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('Search &amp; Ask')}"></head>
+<body>
+  <main class="hb-page hb-page--search">
+    <div class="hb-search-layout">
+
+      <!-- Sidebar: back link, query echo, synthesis card (sticky at desktop) -->
+      <aside class="hb-search-sidebar">
+        <a class="hb-back" th:href="@{/}">&lt; Home</a>
+        <div class="hb-query" th:text="'> ' + ${query}">&gt; query text</div>
+
+        <div class="hb-synthesis-card" th:if="${isAsk and hasMatches}">
+          <div class="hb-synthesis-label">AI SYNTHESIS</div>
+          <div class="hb-bullet" th:each="bullet : ${synthesisBullets}">
+            <span class="hb-bullet-dot"></span>
+            <span class="hb-bullet-text" th:text="${bullet}">N questions indexed.</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main results area -->
+      <section class="hb-search-results">
+        <th:block th:if="${hasMatches}">
+          <th:block th:each="group, stat : ${groups}">
+            <div th:classappend="${stat.even} ? 'hb-cluster-header--solid' : 'hb-cluster-header--outline'"
+                 class="hb-cluster-header"
+                 th:text="${group.topic} + ' — ' + ${group.count}">
+              KAFKA — 5
+            </div>
+            <a class="hb-question-row" th:each="q : ${group.items}" th:href="@{/questions/{id}(id=${q.id})}">
+              <div class="hb-question-title" th:text="${q.content}">Question title</div>
+              <div class="hb-question-tag" th:text="${#strings.arrayJoin(q.tags, ' · ')}">TAG</div>
+            </a>
+          </th:block>
+        </th:block>
+
+        <div class="hb-empty" th:unless="${hasMatches}">No matches found. Query recorded.</div>
+      </section>
+
+    </div>
+  </main>
+</body>
+</html>

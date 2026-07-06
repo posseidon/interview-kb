@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('The Engineering Handbook')}"></head>
+<body>
+  <main class="hb-page hb-page--home">
+    <h1 class="hb-title">THE ENGINEERING HANDBOOK</h1>
+    <div class="hb-stat"
+         th:text="${totalQuestions} + ' QUESTIONS · ' + ${totalTopics} + ' TOPICS INDEXED'">
+      10 QUESTIONS · 2 TOPICS INDEXED
+    </div>
+
+    <form class="hb-search-form" method="get" th:action="@{/search}">
+      <input class="hb-search-input" type="text" name="q" placeholder="Search or Ask..." autocomplete="off" />
+    </form>
+
+    <div class="hb-topic-table">
+      <div class="hb-topic-header">
+        <span>Topic</span><span>Questions</span>
+      </div>
+      <a class="hb-topic-row" th:each="topic : ${topics}" th:href="@{/search(topic=${topic.slug})}">
+        <span class="hb-topic-name" th:text="${topic.name}">Kafka</span>
+        <span class="hb-topic-count" th:text="${topic.count}">5</span>
+      </a>
+    </div>
+  </main>
+</body>
+</html>

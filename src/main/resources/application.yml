@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/interview_kb
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      init:
+        pull-model-strategy: when_missing
+      chat:
+        options:
+          model: llama3.1:8b
+      embedding:
+        options:
+          model: nomic-embed-text
+    vectorstore:
+      pgvector:
+        initialize-schema: false
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+        dimensions: 768
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
