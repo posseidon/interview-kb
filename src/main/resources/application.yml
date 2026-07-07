@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:5432/postgres
     username: postgres.qnanpnychsbfuneisikv
-    password: uB2NV2WsaWgi9wTG
+    password: 
     hikari:
       connection-init-sql: "SET search_path TO public, extensions"
   jpa:
