@@ -5,8 +5,8 @@ A single-user service for storing, searching, and querying IT interview question
 ## Stack
 
 - Java 21 · Spring Boot 3.4 · Spring AI 1.1
-- PostgreSQL 16 + pgvector (via Docker)
-- Ollama — `nomic-embed-text` for embeddings, `llama3.1:8b` for chat
+- PostgreSQL 16 + pgvector via **Supabase** (cloud)
+- Ollama (local) — `nomic-embed-text` for embeddings, `llama3.1:8b` for chat
 - Flyway for schema migrations
 
 ---
@@ -14,7 +14,7 @@ A single-user service for storing, searching, and querying IT interview question
 ## Quick Start
 
 ```bash
-# 1. Start infrastructure
+# 1. Start Ollama (database is Supabase — no local DB needed)
 docker compose up -d
 
 # 2. Pull embedding model (first time only)
@@ -353,18 +353,17 @@ Returned by `/questions`, `/questions/{id}`, `/topics/{slug}/questions`, and `/a
 
 ## Infrastructure
 
+`docker-compose.yml` runs Ollama only. The database is managed by Supabase — no local PostgreSQL container.
+
 ```bash
-# Start all services
+# Start Ollama
 docker compose up -d
 
-# Stop all services
+# Stop Ollama
 docker compose down
 
-# View logs
-docker compose logs -f db
+# View Ollama logs
 docker compose logs -f ollama
-
-# pgAdmin — http://localhost:5050
-# Email: admin@admin.com  Password: admin
-# Add server: host=db, port=5432, db=interview_kb, user=postgres, password=postgres
 ```
+
+Database management is done via the [Supabase dashboard](https://supabase.com).

@@ -1,8 +1,10 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/interview_kb
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:5432/postgres
+    username: postgres.qnanpnychsbfuneisikv
+    password: uB2NV2WsaWgi9wTG
+    hikari:
+      connection-init-sql: "SET search_path TO public, extensions"
   jpa:
     hibernate:
       ddl-auto: validate

@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/common :: head(${question.content})}"></head>
 <body>
+  <th:block th:replace="~{fragments/common :: nav}"></th:block>
   <main class="hb-page hb-page--detail">
     <a class="hb-back" th:href="@{/search(topic=${question.topics[0]})}">&lt; Back</a>
     <div class="hb-chip" th:text="${question.topics[0]}">KAFKA</div>

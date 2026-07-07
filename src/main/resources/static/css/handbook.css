@@ -35,6 +35,107 @@ body {
 }
 .hb-back:hover { text-decoration: underline; }
 
+/* ─── Nav bar ────────────────────────────────────────────────────── */
+.hb-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 48px;
+  border-bottom: 1px solid var(--color-text);
+  background: var(--color-background);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.hb-nav-label {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+.hb-nav-btn {
+  background: none;
+  border: 1px solid var(--color-text);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text);
+  padding: 0;
+}
+.hb-nav-btn:hover { opacity: 0.7; }
+.hb-nav-btn--active {
+  background: var(--color-text);
+  color: var(--color-background);
+}
+
+/* ─── Browse panel ────────────────────────────────────────────────── */
+.hb-browse-panel {
+  position: fixed;
+  top: 48px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-background);
+  z-index: 99;
+  overflow-y: auto;
+}
+.hb-browse-panel-inner {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+.hb-browse-panel-label {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 14px;
+}
+.hb-browse-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.hb-browse-tab {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: 1px solid var(--color-text);
+  background: none;
+  color: var(--color-text);
+  padding: 6px 14px;
+  cursor: pointer;
+}
+.hb-browse-tab:hover { opacity: 0.7; }
+.hb-browse-tab--active {
+  background: var(--color-text);
+  color: var(--color-background);
+}
+.hb-browse-input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid var(--color-text);
+  background: var(--color-background);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  color: var(--color-text);
+  padding: 0 12px;
+  outline: none;
+  margin-bottom: 16px;
+}
+.hb-browse-input:focus {
+  border: 2px solid var(--color-primary);
+  padding: 0 11px;
+}
+
 /* ─── Home ───────────────────────────────────────────────────────── */
 .hb-title {
   margin: 0 0 8px;
@@ -65,6 +166,53 @@ body {
   border: 2px solid var(--color-primary);
   padding: 0 13px;
 }
+/* ─── Ask label / hint / browse-link row ─────────────────────────── */
+.hb-ask-label {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 10px;
+}
+.hb-search-input--ask {
+  height: 56px;
+  font-size: 15px;
+}
+.hb-ask-hint {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  color: var(--color-muted);
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+.hb-browse-link-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hb-browse-link-btn {
+  background: none;
+  border: 1px solid var(--color-text);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text);
+  padding: 0;
+  flex-shrink: 0;
+}
+.hb-browse-link-btn:hover { opacity: 0.7; }
+.hb-browse-link {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.hb-browse-link:hover { text-decoration: underline; }
+
 .hb-topic-header, .hb-topic-row {
   display: flex;
   justify-content: space-between;
@@ -84,6 +232,14 @@ body {
 }
 .hb-topic-row:last-child { border-bottom: none; }
 .hb-topic-row:hover { opacity: 0.65; }
+.hb-topic-row--simple {
+  display: block;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+  justify-content: unset;
+  align-items: unset;
+}
 .hb-topic-name {
   font-family: var(--font-heading);
   font-weight: 600;
@@ -94,6 +250,91 @@ body {
   font-weight: 600;
   font-size: 16px;
   color: var(--color-primary);
+}
+
+/* ─── Scope tiles ─────────────────────────────────────────────────── */
+.hb-scope-tiles {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.hb-scope-tile {
+  flex: 1;
+  border: 1px solid var(--color-text);
+  padding: 28px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: var(--color-background);
+  text-decoration: none;
+  color: var(--color-text);
+}
+.hb-scope-tile:hover { opacity: 0.85; }
+.hb-scope-tile--active {
+  background: var(--color-text);
+  color: var(--color-background);
+}
+.hb-scope-tile-label {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ─── Browse sections (live search) ───────────────────────────────── */
+.hb-browse-sections { margin-top: 4px; }
+.hb-browse-section {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-text);
+}
+.hb-browse-section:last-child { border-bottom: none; }
+.hb-browse-section-label {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--color-text);
+  margin-bottom: 10px;
+}
+.hb-browse-section-label--blue { color: var(--color-primary); }
+.hb-filter-input {
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--color-text);
+  background: var(--color-background);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  color: var(--color-text);
+  padding: 0 10px;
+  outline: none;
+  margin-bottom: 10px;
+}
+.hb-filter-input:focus {
+  border: 2px solid var(--color-primary);
+  padding: 0 9px;
+}
+.hb-filter-empty {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  color: var(--color-muted);
+  padding: 10px 0;
+}
+
+/* ─── Tag chips ────────────────────────────────────────────────────── */
+.hb-tag-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.hb-tag-chip {
+  border: 1px solid var(--color-text);
+  padding: 5px 10px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  color: var(--color-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+.hb-tag-chip:hover {
+  background: var(--color-text);
+  color: var(--color-background);
 }
 
 /* ─── Search & Ask ───────────────────────────────────────────────── */
@@ -151,13 +392,27 @@ body {
 .hb-cluster-header--outline { border: 1px solid var(--color-text); color: var(--color-text); }
 
 .hb-question-row {
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   padding: 12px 0;
   border-bottom: 1px solid var(--color-text);
   text-decoration: none;
   color: inherit;
 }
 .hb-question-row:hover { opacity: 0.7; }
+.hb-question-icon {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-text);
+}
+.hb-question-body { flex: 1; min-width: 0; }
 .hb-question-title { font-family: var(--font-body); font-size: 17px; color: var(--color-text); margin-bottom: 3px; }
 .hb-question-tag {
   font-family: var(--font-heading);
@@ -420,6 +675,9 @@ body {
    RESPONSIVE — tablet ≥ 640px
 ═══════════════════════════════════════════════════════════════════ */
 @media (min-width: 640px) {
+  .hb-nav { padding: 0 24px; }
+  .hb-browse-panel-inner { max-width: 640px; padding: 32px 24px; }
+
   .hb-page {
     max-width: 640px;
     padding: 32px 24px 56px;
@@ -446,6 +704,8 @@ body {
    RESPONSIVE — desktop ≥ 1024px
 ═══════════════════════════════════════════════════════════════════ */
 @media (min-width: 1024px) {
+  .hb-nav { padding: 0 40px; }
+  .hb-browse-panel-inner { max-width: 560px; padding: 40px; }
 
   /* ── Shared ── */
   .hb-back       { font-size: 13px; }
@@ -455,23 +715,12 @@ body {
     max-width: 70ch; /* comfortable reading line length */
   }
 
-  /* ── Home: two-column grid ──────────────────────────────────────
-     Left  (5fr): title · stat · search input
-     Right (7fr): topic table
-     No HTML changes needed — CSS grid assigns children by order.    */
+  /* ── Home: centered single column ───────────────────────────────*/
   .hb-page--home {
-    max-width: 1100px;
+    max-width: 560px;
     padding: 56px 40px 72px;
-    display: grid;
-    grid-template-columns: 5fr 7fr;
-    grid-template-rows: auto auto auto 1fr;
-    column-gap: 72px;
-    align-items: start;
   }
-  .hb-page--home .hb-title       { grid-column: 1; grid-row: 1; font-size: 36px; }
-  .hb-page--home .hb-stat        { grid-column: 1; grid-row: 2; }
-  .hb-page--home .hb-search-form { grid-column: 1; grid-row: 3; margin-bottom: 0; }
-  .hb-page--home .hb-topic-table { grid-column: 2; grid-row: 1 / 5; }
+  .hb-page--home .hb-title { font-size: 36px; }
 
   /* ── Search: sticky sidebar ─────────────────────────────────────
      Left sidebar (260px): back · query · synthesis card

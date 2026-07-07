@@ -37,16 +37,22 @@ public class ListingController {
     }
 
     @GetMapping("/topics")
-    public ResponseEntity<List<TopicDto>> getTopics() {
-        List<TopicDto> topics = topicRepository.findAll().stream()
+    public ResponseEntity<List<TopicDto>> getTopics(@RequestParam(required = false) String q) {
+        List<TopicDto> topics = (q == null || q.isBlank()
+                ? topicRepository.findAll()
+                : topicRepository.search(q))
+                .stream()
                 .map(t -> new TopicDto(t.getId(), t.getSlug(), t.getName(), t.getDescription()))
                 .toList();
         return ResponseEntity.ok(topics);
     }
 
     @GetMapping("/tags")
-    public ResponseEntity<List<TagDto>> getTags() {
-        List<TagDto> tags = tagRepository.findAll().stream()
+    public ResponseEntity<List<TagDto>> getTags(@RequestParam(required = false) String q) {
+        List<TagDto> tags = (q == null || q.isBlank()
+                ? tagRepository.findAll()
+                : tagRepository.findByNameContainingIgnoreCase(q))
+                .stream()
                 .map(t -> new TagDto(t.getId(), t.getName()))
                 .toList();
         return ResponseEntity.ok(tags);

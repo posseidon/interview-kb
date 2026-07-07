@@ -11,6 +11,7 @@ import io.github.posseidon.knowledgebase.it.interview.dto.QuestionView;
 import io.github.posseidon.knowledgebase.it.interview.ingest.ContentHash;
 import io.github.posseidon.knowledgebase.it.interview.repo.AnswerRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
+import io.github.posseidon.knowledgebase.it.interview.repo.TagRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.TopicRepository;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.node.Node;
@@ -49,17 +50,20 @@ public class HandbookViewController {
             .build();
 
     private final TopicRepository topicRepository;
+    private final TagRepository tagRepository;
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final AskService askService;
     private final VectorStore vectorStore;
 
     public HandbookViewController(TopicRepository topicRepository,
+                                  TagRepository tagRepository,
                                   QuestionRepository questionRepository,
                                   AnswerRepository answerRepository,
                                   AskService askService,
                                   VectorStore vectorStore) {
         this.topicRepository = topicRepository;
+        this.tagRepository = tagRepository;
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;
         this.askService = askService;
@@ -67,16 +71,9 @@ public class HandbookViewController {
     }
 
     @GetMapping("/")
-    public String home(Model model) {
-        List<TopicWithCount> topics = topicRepository.findAll().stream()
-                .map(t -> new TopicWithCount(t.getSlug(), t.getName(),
-                        (int) questionRepository.countByTopicSlug(t.getSlug())))
-                .sorted(Comparator.comparing(TopicWithCount::name))
-                .collect(Collectors.toList());
-
-        model.addAttribute("topics", topics);
-        model.addAttribute("totalQuestions", topics.stream().mapToInt(TopicWithCount::count).sum());
-        model.addAttribute("totalTopics", topics.size());
+    public String home(@RequestParam(required = false) String scope, Model model) {
+        model.addAttribute("scope", scope != null ? scope : "all");
+        model.addAttribute("totalQuestions", questionRepository.count());
         return "home";
     }
 
@@ -84,8 +81,11 @@ public class HandbookViewController {
     @GetMapping("/search")
     public String search(@RequestParam(required = false) String q,
                          @RequestParam(required = false) String topic,
+                         @RequestParam(required = false) String tag,
+                         @RequestParam(required = false) String scope,
                          Model model) {
         boolean isAsk = q != null && !q.isBlank();
+        boolean isBrowseTag = !isAsk && tag != null && !tag.isBlank();
         List<QuestionView> results;
         String displayQuery;
 
@@ -94,6 +94,10 @@ public class HandbookViewController {
             results = resp.sources();
             displayQuery = q;
             model.addAttribute("synthesisBullets", buildSynthesisBullets(results));
+        } else if (isBrowseTag) {
+            List<Question> entities = questionRepository.findByTagName(tag, PageRequest.of(0, 50));
+            results = entities.stream().map(this::toQuestionView).toList();
+            displayQuery = tag;
         } else {
             List<Question> entities = questionRepository.findByTopicSlug(
                     topic, PageRequest.of(0, 50));
@@ -101,6 +105,12 @@ public class HandbookViewController {
             displayQuery = topicRepository.findBySlug(topic)
                     .map(Topic::getName)
                     .orElse(topic);
+        }
+
+        if ("coding".equals(scope)) {
+            results = results.stream().filter(QuestionView::requiresImpl).toList();
+        } else if ("theory".equals(scope)) {
+            results = results.stream().filter(r -> !r.requiresImpl()).toList();
         }
 
         model.addAttribute("isAsk", isAsk);

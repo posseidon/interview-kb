@@ -6,12 +6,10 @@ Project context for Claude Code. Read this before making changes.
 
 An **IT interview knowledge base**: a single-user (no auth) service that stores interview questions and answers, ingests them from JSON, lists them by topic/tag, answers natural-language questions over them with a local LLM (RAG), and supports human-in-the-loop merging of duplicate questions.
 
-The current goal is to generate a **compiling, runnable skeleton** — full structure, wiring, and method signatures, with business logic stubbed as clearly-marked `// TODO` where noted in `PLAN.md`.
-
 ## Stack (do not substitute)
 
 - **Java 21**, **Spring Boot 3.4+**, **Spring AI 1.1.x** (pin the current patch from Maven Central).
-- **PostgreSQL + pgvector** — one instance holds relational data *and* vectors. Local: `pgvector/pgvector:pg16` via Docker. Cloud testing: Neon or Supabase free tier.
+- **PostgreSQL + pgvector** — one instance holds relational data *and* vectors. **Cloud: Supabase** (connection configured in `application.yml`). No local PostgreSQL container.
 - **Ollama** (local) for embeddings (`nomic-embed-text`, 768-dim) and chat (`llama3.1:8b` or `qwen2.5:7b`), accessed through Spring AI.
 - Spring Data JPA, Flyway, Jakarta Validation.
 
@@ -56,13 +54,13 @@ io.github.posseidon.knowledgebase.it.interview
 ## Commands
 
 ```bash
-docker compose up -d          # Postgres(pgvector) + Ollama
+docker compose up -d          # Ollama only (DB is Supabase)
 ollama pull nomic-embed-text  # if not auto-pulled
 mvn clean verify              # compile + tests
 mvn spring-boot:run           # run the app
 ```
 
-Health check: `GET /actuator/health` should be UP with DB + Ollama reachable.
+Health check: `GET /actuator/health` should be UP with DB (Supabase) + Ollama reachable.
 
 ## Constraints / gotchas
 
@@ -72,6 +70,8 @@ Health check: `GET /actuator/health` should be UP with DB + Ollama reachable.
 - Merge is **destructive**: the source question is hard-deleted; its full snapshot is kept in `merge_log.source_snapshot`.
 - "Most common questions in X" is driven by `Question.frequency`, incremented on each merge.
 
-## Definition of done (skeleton)
+## Database (Supabase)
 
-App starts, Flyway applies `V1__init.sql`, `/actuator/health` is UP, all layers exist and compile, the ingestion happy path stores a question in both stores, and `mvn verify` passes. Deep logic in `AskService` and `MergeService` may remain `// TODO` per `PLAN.md`.
+- Connection string and credentials live in `application.yml`. Do not add a local PostgreSQL service to `docker-compose.yml`.
+- `spring.ai.vectorstore.pgvector.initialize-schema=false` — Flyway owns the schema, including `vector_store`.
+- Supabase installs extensions in the `extensions` schema; `connection-init-sql: "SET search_path TO public, extensions"` ensures they are visible without schema qualification.

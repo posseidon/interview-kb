@@ -40,6 +40,24 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
     @Query("SELECT COUNT(q) FROM Question q JOIN q.topics t WHERE t.slug = :slug")
     long countByTopicSlug(@Param("slug") String slug);
 
+    @Query("SELECT COUNT(q) FROM Question q JOIN q.topics t WHERE t.slug = :slug AND q.requiresImpl = :impl")
+    long countByTopicSlugAndRequiresImpl(@Param("slug") String slug, @Param("impl") boolean impl);
+
+    long countByRequiresImpl(boolean requiresImpl);
+
+    @Query("SELECT COUNT(q) FROM Question q JOIN q.tags t WHERE t.name = :name")
+    long countByTagName(@Param("name") String name);
+
+    @Query("""
+            SELECT q FROM Question q
+            LEFT JOIN FETCH q.answers
+            WHERE EXISTS (
+                SELECT 1 FROM q.tags tg WHERE tg.name = :tagName
+            )
+            ORDER BY q.frequency DESC, q.createdAt DESC
+            """)
+    List<Question> findByTagName(@Param("tagName") String tagName, Pageable pageable);
+
     @Query("""
             SELECT q FROM Question q
             WHERE q.requiresImpl = false
