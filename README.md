@@ -11,23 +11,97 @@ A single-user service for storing, searching, and querying IT interview question
 
 ---
 
-## Quick Start
+## Running Locally
+
+### Prerequisites
+
+| Tool | macOS / Linux | Windows |
+|------|---------------|---------|
+| **Java 21** | `brew install --cask temurin@21` or download from [Adoptium](https://adoptium.net) | `winget install EclipseAdoptium.Temurin.21.JDK` or download from [Adoptium](https://adoptium.net) |
+| **Maven 3.9+** | `brew install maven` | `winget install Apache.Maven` |
+| **Docker** | [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Colima | [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/) (WSL 2 backend recommended) |
+
+You also need a **Supabase** project with the `pgvector` extension enabled.
+
+Verify your installs:
 
 ```bash
-# 1. Start Ollama (database is Supabase — no local DB needed)
+java -version   # should report 21+
+mvn -version
+docker version
+```
+
+### Step 1 — Configure the database
+
+Open `src/main/resources/application.yml` and fill in your Supabase connection details:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://<db-host>:5432/postgres
+    username: postgres
+    password: <your-supabase-db-password>
+```
+
+The host and password are available in your Supabase project under **Settings → Database → Connection string**.
+
+### Step 2 — Start Ollama
+
+```bash
 docker compose up -d
+```
 
-# 2. Pull embedding model (first time only)
+This starts the Ollama container. The database runs on Supabase — no local PostgreSQL container is needed.
+
+> **Windows note:** Run this command in PowerShell or Windows Terminal. Docker Desktop must be running first.
+
+### Step 3 — Pull the embedding model (first time only)
+
+```bash
 ollama pull nomic-embed-text
+```
 
-# 3. Run the app
+The chat model (`llama3.1:8b`) is pulled automatically on first use. Pull it explicitly if you prefer:
+
+```bash
+ollama pull llama3.1:8b
+```
+
+> **Windows note:** If `ollama` is not found, the command runs inside the container. Use `docker exec ollama ollama pull nomic-embed-text` instead.
+
+### Step 4 — Run the application
+
+**macOS / Linux**
+```bash
 mvn spring-boot:run
 ```
 
-Health check:
+**Windows (PowerShell)**
+```powershell
+mvn spring-boot:run
+```
+
+Maven and the Spring Boot plugin work the same on both platforms. If `mvn` is not on your `PATH` after installation, restart your terminal or run `refreshenv` (Chocolatey) / open a new PowerShell window.
+
+### Step 5 — Verify
+
+**macOS / Linux**
 ```bash
 curl http://localhost:8080/actuator/health
 ```
+
+**Windows (PowerShell)**
+```powershell
+Invoke-RestMethod http://localhost:8080/actuator/health
+```
+
+Expected response:
+
+```json
+{"status": "UP"}
+```
+
+Both the `db` (Supabase) and Ollama components should report `UP`. If Ollama is still pulling a model, wait a moment and retry.
 
 ---
 
