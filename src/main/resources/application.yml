@@ -1,14 +1,29 @@
 spring:
+  threads:
+    virtual:
+      enabled: true
   datasource:
     url: jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:5432/postgres
     username: postgres.qnanpnychsbfuneisikv
-    password:
+    password: uB2NV2WsaWgi9wTG
     hikari:
       connection-init-sql: "SET search_path TO public, extensions"
+      maximum-pool-size: 5
+      minimum-idle: 2
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1800000
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+    properties:
+      hibernate:
+        default_batch_fetch_size: 50
+        jdbc:
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
   flyway:
     enabled: true
   ai:

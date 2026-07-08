@@ -5,29 +5,18 @@
   <th:block th:replace="~{fragments/common :: nav}"></th:block>
 
   <main class="hb-page hb-page--home">
-    <h1 class="hb-title">THE ENGINEERING HANDBOOK</h1>
+    <h1 class="hb-title">THE QUESTIONS BANK</h1>
     <div class="hb-stat"
          th:text="${totalQuestions} + (${totalQuestions == 1} ? ' QUESTION INDEXED' : ' QUESTIONS INDEXED')">
       10 QUESTIONS INDEXED
     </div>
 
-    <div class="hb-ask-label">Ask the Handbook</div>
     <form class="hb-search-form" method="get" th:action="@{/search}">
       <input class="hb-search-input hb-search-input--ask" type="text" name="q"
              placeholder="Search or Ask..." autocomplete="off" />
     </form>
     <p class="hb-ask-hint">Press Enter to ask. Answers are synthesized from indexed questions, each marked coding or theoretical.</p>
 
-    <div class="hb-browse-link-row">
-      <button class="hb-browse-link-btn" type="button" onclick="toggleBrowse()">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-             stroke="currentColor" stroke-width="1.5">
-          <circle cx="7" cy="7" r="4.5"></circle>
-          <line x1="10.6" y1="10.6" x2="14" y2="14"></line>
-        </svg>
-      </button>
-      <a class="hb-browse-link" href="#" onclick="toggleBrowse(); return false;">Browse topics &amp; tags</a>
-    </div>
   </main>
 </body>
 </html>

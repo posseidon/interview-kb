@@ -73,6 +73,23 @@ body {
   background: var(--color-text);
   color: var(--color-background);
 }
+.hb-nav-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.hb-nav-icon-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-text);
+  color: var(--color-text);
+  text-decoration: none;
+  margin-right: 8px;
+}
+.hb-nav-icon-link:hover { opacity: 0.7; }
 
 /* ─── Browse panel ────────────────────────────────────────────────── */
 .hb-browse-panel {
@@ -166,19 +183,8 @@ body {
   border: 2px solid var(--color-primary);
   padding: 0 13px;
 }
-/* ─── Ask label / hint / browse-link row ─────────────────────────── */
-.hb-ask-label {
-  font-family: var(--font-heading);
-  font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--color-muted);
-  margin-bottom: 10px;
-}
-.hb-search-input--ask {
-  height: 56px;
-  font-size: 15px;
-}
+/* ─── Ask hint ────────────────────────────────────────────────────── */
+.hb-search-input--ask { height: 56px; font-size: 15px; }
 .hb-ask-hint {
   font-family: var(--font-heading);
   font-size: 12px;
@@ -186,32 +192,6 @@ body {
   margin: 0 0 24px;
   line-height: 1.5;
 }
-.hb-browse-link-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.hb-browse-link-btn {
-  background: none;
-  border: 1px solid var(--color-text);
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--color-text);
-  padding: 0;
-  flex-shrink: 0;
-}
-.hb-browse-link-btn:hover { opacity: 0.7; }
-.hb-browse-link {
-  font-family: var(--font-heading);
-  font-size: 13px;
-  color: var(--color-primary);
-  text-decoration: none;
-}
-.hb-browse-link:hover { text-decoration: underline; }
 
 .hb-topic-header, .hb-topic-row {
   display: flex;
@@ -670,6 +650,95 @@ body {
   background: var(--color-text);
   color: var(--color-background);
 }
+
+/* ─── Interviews ─────────────────────────────────────────────────── */
+.hb-iv-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.hb-iv-tile {
+  display: block;
+  border: 1px solid var(--color-text);
+  border-left-width: 4px;
+  padding: 16px 18px;
+  text-decoration: none;
+  color: inherit;
+}
+.hb-iv-tile:hover { opacity: 0.82; }
+
+.hb-iv-tile--no-hire  { border-left-color: #FF3B30; background: rgba(255,59,48,.03); }
+.hb-iv-tile--maybe    { border-left-color: #FF9F0A; background: rgba(255,159,10,.03); }
+.hb-iv-tile--good     { border-left-color: #30D158; background: rgba(48,209,88,.03); }
+
+.hb-iv-tile-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.hb-iv-project {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 16px;
+}
+.hb-iv-date {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  color: var(--color-muted);
+  flex-shrink: 0;
+}
+
+.hb-iv-badge {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  margin-bottom: 10px;
+}
+.hb-iv-badge--no-hire { background: #FF3B30; color: #fff; }
+.hb-iv-badge--maybe   { background: #FF9F0A; color: #fff; }
+.hb-iv-badge--good    { background: #30D158; color: #fff; }
+
+.hb-iv-snippet {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-text);
+  opacity: 0.75;
+  margin: 0 0 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hb-iv-meta {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  color: var(--color-muted);
+  letter-spacing: 0.3px;
+}
+
+.hb-iv-detail-header { margin-bottom: 24px; }
+.hb-iv-detail-header .hb-detail-title { margin-bottom: 8px; }
+.hb-iv-detail-header .hb-meta { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+.hb-iv-section-label {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin: 28px 0 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-text);
+}
+.hb-iv-section-label:first-of-type { margin-top: 0; }
 
 /* ═══════════════════════════════════════════════════════════════════
    RESPONSIVE — tablet ≥ 640px

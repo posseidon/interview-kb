@@ -6,20 +6,33 @@
   <title th:text="${title}">Engineering Handbook</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=EB+Garamond:wght@400;600&amp;display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" />
   <link rel="stylesheet" th:href="@{/css/handbook.css}" />
 </head>
 <body>
 <th:block th:fragment="nav">
   <nav class="hb-nav">
     <span class="hb-nav-label">Handbook</span>
-    <button class="hb-nav-btn" id="hb-nav-btn" type="button"
-            onclick="toggleBrowse()" aria-label="Browse topics and tags">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-           stroke="currentColor" stroke-width="1.5">
-        <circle cx="7" cy="7" r="4.5"></circle>
-        <line x1="10.6" y1="10.6" x2="14" y2="14"></line>
-      </svg>
-    </button>
+    <div class="hb-nav-actions">
+      <a class="hb-nav-icon-link" th:href="@{/interviews}"
+         aria-label="My interviews" title="My interviews">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <rect x="2" y="3" width="12" height="11" rx="1"/>
+          <line x1="2" y1="7" x2="14" y2="7"/>
+          <line x1="5" y1="1.5" x2="5" y2="4.5"/>
+          <line x1="11" y1="1.5" x2="11" y2="4.5"/>
+        </svg>
+      </a>
+      <button class="hb-nav-btn" id="hb-nav-btn" type="button"
+              onclick="toggleBrowse()" aria-label="Browse topics and tags">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.5">
+          <circle cx="7" cy="7" r="4.5"></circle>
+          <line x1="10.6" y1="10.6" x2="14" y2="14"></line>
+        </svg>
+      </button>
+    </div>
   </nav>
 
   <div class="hb-browse-panel" id="hb-browse-panel" style="display:none;" aria-hidden="true">

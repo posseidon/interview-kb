@@ -4,7 +4,9 @@
 <body>
   <th:block th:replace="~{fragments/common :: nav}"></th:block>
   <main class="hb-page hb-page--detail">
-    <a class="hb-back" th:href="@{/search(topic=${question.topics[0]})}">&lt; Back</a>
+    <a class="hb-back"
+       th:href="@{/search(topic=${question.topics[0]})}"
+       onclick="if(history.length>1){history.back();return false;}">&lt; Back</a>
     <div class="hb-chip" th:text="${question.topics[0]}">KAFKA</div>
     <h1 class="hb-detail-title" id="hb-question-title" th:text="${question.content}">Question title</h1>
     <button class="hb-edit-toggle" id="hb-question-edit-btn"

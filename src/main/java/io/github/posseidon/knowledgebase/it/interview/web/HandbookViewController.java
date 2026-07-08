@@ -5,7 +5,6 @@ import io.github.posseidon.knowledgebase.it.interview.domain.Answer;
 import io.github.posseidon.knowledgebase.it.interview.domain.Question;
 import io.github.posseidon.knowledgebase.it.interview.domain.Tag;
 import io.github.posseidon.knowledgebase.it.interview.domain.Topic;
-import io.github.posseidon.knowledgebase.it.interview.dto.AnswerView;
 import io.github.posseidon.knowledgebase.it.interview.dto.AskResponse;
 import io.github.posseidon.knowledgebase.it.interview.dto.QuestionView;
 import io.github.posseidon.knowledgebase.it.interview.ingest.ContentHash;
@@ -13,10 +12,8 @@ import io.github.posseidon.knowledgebase.it.interview.repo.AnswerRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.TagRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.TopicRepository;
-import org.commonmark.ext.gfm.tables.TablesExtension;
-import org.commonmark.node.Node;
-import org.commonmark.parser.Parser;
-import org.commonmark.renderer.html.HtmlRenderer;
+import io.github.posseidon.knowledgebase.it.interview.util.Markdown;
+import io.github.posseidon.knowledgebase.it.interview.util.QuestionMapper;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.data.domain.PageRequest;
@@ -42,32 +39,28 @@ public class HandbookViewController {
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneId.systemDefault());
 
-    private static final Parser MD_PARSER = Parser.builder()
-            .extensions(List.of(TablesExtension.create()))
-            .build();
-    private static final HtmlRenderer MD_RENDERER = HtmlRenderer.builder()
-            .extensions(List.of(TablesExtension.create()))
-            .build();
-
     private final TopicRepository topicRepository;
     private final TagRepository tagRepository;
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final AskService askService;
     private final VectorStore vectorStore;
+    private final QuestionMapper questionMapper;
 
     public HandbookViewController(TopicRepository topicRepository,
                                   TagRepository tagRepository,
                                   QuestionRepository questionRepository,
                                   AnswerRepository answerRepository,
                                   AskService askService,
-                                  VectorStore vectorStore) {
+                                  VectorStore vectorStore,
+                                  QuestionMapper questionMapper) {
         this.topicRepository = topicRepository;
         this.tagRepository = tagRepository;
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;
         this.askService = askService;
         this.vectorStore = vectorStore;
+        this.questionMapper = questionMapper;
     }
 
     @GetMapping("/")
@@ -95,16 +88,14 @@ public class HandbookViewController {
             displayQuery = q;
             model.addAttribute("synthesisBullets", buildSynthesisBullets(results));
         } else if (isBrowseTag) {
-            List<Question> entities = questionRepository.findByTagName(tag, PageRequest.of(0, 50));
-            results = entities.stream().map(this::toQuestionView).toList();
+            results = questionRepository.findByTagName(tag, PageRequest.of(0, 50))
+                    .stream().map(questionMapper::toView).toList();
             displayQuery = tag;
         } else {
-            List<Question> entities = questionRepository.findByTopicSlug(
-                    topic, PageRequest.of(0, 50));
-            results = entities.stream().map(this::toQuestionView).toList();
+            results = questionRepository.findByTopicSlug(topic, PageRequest.of(0, 50))
+                    .stream().map(questionMapper::toView).toList();
             displayQuery = topicRepository.findBySlug(topic)
-                    .map(Topic::getName)
-                    .orElse(topic);
+                    .map(Topic::getName).orElse(topic);
         }
 
         if ("coding".equals(scope)) {
@@ -128,10 +119,11 @@ public class HandbookViewController {
 
         List<AnswerDetail> answerDetails = question.getAnswers().stream()
                 .sorted(Comparator.comparing(Answer::getCreatedAt))
-                .map(a -> new AnswerDetail(a.getId(), a.getSource(), a.getContent(), renderMarkdown(a.getContent())))
+                .map(a -> new AnswerDetail(a.getId(), a.getSource(), a.getContent(),
+                        Markdown.toHtml(a.getContent())))
                 .toList();
 
-        model.addAttribute("question", toQuestionView(question));
+        model.addAttribute("question", questionMapper.toView(question));
         model.addAttribute("answerDetails", answerDetails);
         model.addAttribute("createdAtDisplay", DATE_FMT.format(question.getCreatedAt()));
         return "detail";
@@ -150,27 +142,25 @@ public class HandbookViewController {
             question.setContentHash(newHash);
             question.setUpdatedAt(Instant.now());
             vectorStore.delete(List.of(id.toString()));
-            List<String> topicSlugs = question.getTopics().stream().map(Topic::getSlug).toList();
-            List<String> tagNames = question.getTags().stream().map(Tag::getName).toList();
-            Document doc = Document.builder()
-                    .id(id.toString())
-                    .text(stripped)
-                    .metadata(Map.of("topics", topicSlugs, "tags", tagNames, "frequency", question.getFrequency()))
-                    .build();
-            vectorStore.add(List.of(doc));
+            vectorStore.add(List.of(Document.builder()
+                    .id(id.toString()).text(stripped)
+                    .metadata(Map.of(
+                            "topics", question.getTopics().stream().map(Topic::getSlug).toList(),
+                            "tags", question.getTags().stream().map(Tag::getName).toList(),
+                            "frequency", question.getFrequency()))
+                    .build()));
         }
         return "redirect:/questions/" + id;
     }
 
     @Transactional
     @PostMapping("/questions/{id}/answers")
-    public String addAnswer(@PathVariable UUID id,
-                            @RequestParam String content) {
+    public String addAnswer(@PathVariable UUID id, @RequestParam String content) {
         if (content == null || content.isBlank()) return "redirect:/questions/" + id;
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        answerRepository.save(new Answer(question, content.strip(),
-                ContentHash.sha256(content.strip()), "human"));
+        String stripped = content.strip();
+        answerRepository.save(new Answer(question, stripped, ContentHash.sha256(stripped), "human"));
         return "redirect:/questions/" + id;
     }
 
@@ -182,18 +172,13 @@ public class HandbookViewController {
         if (content == null || content.isBlank()) return "redirect:/questions/" + id;
         Answer answer = answerRepository.findById(answerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        answer.setContent(content.strip());
-        answer.setContentHash(ContentHash.sha256(content.strip()));
+        String stripped = content.strip();
+        answer.setContent(stripped);
+        answer.setContentHash(ContentHash.sha256(stripped));
         return "redirect:/questions/" + id;
     }
 
     // --- presentation helpers ---
-
-    private String renderMarkdown(String markdown) {
-        if (markdown == null || markdown.isBlank()) return "";
-        Node document = MD_PARSER.parse(markdown);
-        return MD_RENDERER.render(document);
-    }
 
     private List<String> buildSynthesisBullets(List<QuestionView> results) {
         Map<String, List<String>> byTopic = new LinkedHashMap<>();
@@ -219,17 +204,6 @@ public class HandbookViewController {
                 .collect(Collectors.toList());
     }
 
-    private QuestionView toQuestionView(Question q) {
-        List<String> topics = q.getTopics().stream().map(Topic::getSlug).toList();
-        List<String> tags = q.getTags().stream().map(Tag::getName).toList();
-        List<AnswerView> answers = q.getAnswers().stream()
-                .map(a -> new AnswerView(a.getId(), a.getSource(), a.getContent()))
-                .toList();
-        return new QuestionView(q.getId(), q.getExternalId(), q.getContent(),
-                q.getRequiresImpl(), q.getLanguage(), q.getFrequency(), topics, tags, answers);
-    }
-
-    public record TopicWithCount(String slug, String name, int count) {}
     public record TopicGroup(String topic, int count, List<QuestionView> items) {}
     public record AnswerDetail(UUID id, String source, String rawContent, String htmlContent) {}
 }

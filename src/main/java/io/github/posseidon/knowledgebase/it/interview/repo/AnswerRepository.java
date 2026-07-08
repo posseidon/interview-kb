@@ -2,10 +2,17 @@ package io.github.posseidon.knowledgebase.it.interview.repo;
 
 import io.github.posseidon.knowledgebase.it.interview.domain.Answer;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface AnswerRepository extends JpaRepository<Answer, UUID> {
+
+    @Query("SELECT a FROM Answer a WHERE a.question.id IN :ids")
+    List<Answer> findByQuestionIds(@Param("ids") Collection<UUID> ids);
 }

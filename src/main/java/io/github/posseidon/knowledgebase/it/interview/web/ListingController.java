@@ -1,19 +1,16 @@
 package io.github.posseidon.knowledgebase.it.interview.web;
 
-import io.github.posseidon.knowledgebase.it.interview.domain.Question;
-import io.github.posseidon.knowledgebase.it.interview.domain.Tag;
-import io.github.posseidon.knowledgebase.it.interview.domain.Topic;
-import io.github.posseidon.knowledgebase.it.interview.dto.AnswerView;
 import io.github.posseidon.knowledgebase.it.interview.dto.QuestionView;
 import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.TagRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.TopicRepository;
+import io.github.posseidon.knowledgebase.it.interview.util.QuestionMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,12 +25,14 @@ public class ListingController {
     private final TopicRepository topicRepository;
     private final TagRepository tagRepository;
     private final QuestionRepository questionRepository;
+    private final QuestionMapper questionMapper;
 
     public ListingController(TopicRepository topicRepository, TagRepository tagRepository,
-                             QuestionRepository questionRepository) {
+                             QuestionRepository questionRepository, QuestionMapper questionMapper) {
         this.topicRepository = topicRepository;
         this.tagRepository = tagRepository;
         this.questionRepository = questionRepository;
+        this.questionMapper = questionMapper;
     }
 
     @GetMapping("/topics")
@@ -64,15 +63,15 @@ public class ListingController {
             @RequestParam(required = false) String tag,
             @RequestParam(required = false) String q,
             @PageableDefault(size = 20, sort = "frequency", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<Question> questions = questionRepository.findFiltered(topic, tag, q, pageable);
-        Page<QuestionView> views = questions.map(this::toQuestionView);
-        return ResponseEntity.ok(views);
+        return ResponseEntity.ok(questionRepository.findFiltered(topic, tag, q, pageable)
+                .map(questionMapper::toView));
     }
 
     @GetMapping("/questions/{id}")
     public ResponseEntity<QuestionView> getQuestion(@PathVariable UUID id) {
         return questionRepository.findById(id)
-                .map(q -> ResponseEntity.ok(toQuestionView(q)))
+                .map(questionMapper::toView)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -80,32 +79,10 @@ public class ListingController {
     public ResponseEntity<List<QuestionView>> getQuestionsByTopic(
             @PathVariable String slug,
             @PageableDefault(size = 20, sort = "frequency", direction = Sort.Direction.DESC) Pageable pageable) {
-        List<Question> questions = questionRepository.findByTopicSlug(slug, pageable);
-        List<QuestionView> views = questions.stream().map(this::toQuestionView).toList();
-        return ResponseEntity.ok(views);
-    }
-
-    private QuestionView toQuestionView(Question q) {
-        List<String> topics = q.getTopics().stream().map(Topic::getSlug).toList();
-        List<String> tags = q.getTags().stream().map(Tag::getName).toList();
-        List<AnswerView> answers = q.getAnswers().stream()
-                .map(a -> new AnswerView(a.getId(), a.getSource(), a.getContent()))
-                .toList();
-
-        return new QuestionView(
-                q.getId(),
-                q.getExternalId(),
-                q.getContent(),
-                q.getRequiresImpl(),
-                q.getLanguage(),
-                q.getFrequency(),
-                topics,
-                tags,
-                answers
-        );
+        return ResponseEntity.ok(questionRepository.findByTopicSlug(slug, pageable)
+                .stream().map(questionMapper::toView).toList());
     }
 
     public record TopicDto(UUID id, String slug, String name, String description) {}
-
     public record TagDto(UUID id, String name) {}
 }

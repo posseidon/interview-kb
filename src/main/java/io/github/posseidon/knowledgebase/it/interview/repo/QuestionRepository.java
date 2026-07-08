@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,7 +17,10 @@ import java.util.UUID;
 public interface QuestionRepository extends JpaRepository<Question, UUID> {
     Optional<Question> findByExternalId(String externalId);
 
+    List<Question> findAllByExternalIdIn(Collection<String> externalIds);
+
     Optional<Question> findByContentHash(String contentHash);
+    List<Question> findAllByContentHashIn(Collection<String> hashes);
 
     @Query("""
             SELECT DISTINCT q FROM Question q
@@ -50,7 +54,6 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
 
     @Query("""
             SELECT q FROM Question q
-            LEFT JOIN FETCH q.answers
             WHERE EXISTS (
                 SELECT 1 FROM q.tags tg WHERE tg.name = :tagName
             )
@@ -68,7 +71,6 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
 
     @Query("""
             SELECT q FROM Question q
-            LEFT JOIN FETCH q.answers
             WHERE EXISTS (
                 SELECT 1 FROM q.topics t WHERE t.slug = :topicSlug
             )
