@@ -6,7 +6,7 @@
 
     <groupId>com.interviewkb</groupId>
     <artifactId>interview-kb</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>Interview Knowledge Base</name>
