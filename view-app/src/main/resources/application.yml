@@ -26,6 +26,12 @@ spring:
         order_updates: true
   flyway:
     enabled: false
+  ai:
+    mcp:
+      server:
+        name: interview-kb-mcp
+        version: 1.0.0
+        type: SYNC
 
 server:
   port: 8080
