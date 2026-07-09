@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title th:text="${title}">Engineering Handbook</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=EB+Garamond:wght@400;600&amp;display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" />
+  <link rel="stylesheet" th:href="@{/css/handbook.css}" />
+</head>
+<body>
+<th:block th:fragment="nav">
+  <nav class="hb-nav">
+    <div class="hb-nav-brand">
+      <a class="hb-nav-icon-link hb-nav-icon-link--basket" th:href="@{/basket}"
+         aria-label="Basket" title="Basket">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="6" width="12" height="8" rx="1.5"/>
+          <path d="M6 6V4.5A1.5 1.5 0 0 1 7.5 3h1A1.5 1.5 0 0 1 10 4.5V6"/>
+          <line x1="2" y1="9.5" x2="14" y2="9.5"/>
+        </svg>
+        <span class="hb-basket-badge" th:if="${basketSize} != null and ${basketSize} > 0"
+              th:text="${basketSize}">0</span>
+      </a>
+      <span class="hb-nav-label">Handbook</span>
+    </div>
+    <div class="hb-nav-actions">
+      <a class="hb-nav-icon-link" th:href="@{/skills}"
+         aria-label="Browse skills" title="Browse skills">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <rect x="2" y="2" width="5" height="5" rx="1"/>
+          <rect x="9" y="2" width="5" height="5" rx="1"/>
+          <rect x="2" y="9" width="5" height="5" rx="1"/>
+          <rect x="9" y="9" width="5" height="5" rx="1"/>
+        </svg>
+      </a>
+      <a class="hb-nav-icon-link" th:href="@{/interviews}"
+         aria-label="My interviews" title="My interviews">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="5.5" cy="5.5" r="2"/>
+          <path d="M1.5 13c0-2.2 1.6-3.8 4-3.8s4 1.6 4 3.8"/>
+          <circle cx="11.5" cy="6" r="1.6"/>
+          <path d="M8.8 13c.2-1.8 1.4-3 2.7-3s2.4 1 2.6 2.6"/>
+        </svg>
+      </a>
+      <a class="hb-nav-btn" th:href="@{/}" aria-label="Search">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.5">
+          <circle cx="7" cy="7" r="4.5"></circle>
+          <line x1="10.6" y1="10.6" x2="14" y2="14"></line>
+        </svg>
+      </a>
+    </div>
+  </nav>
+</th:block>
+
+<th:block th:fragment="skillLevelPicker(skillId, level)">
+  <input type="hidden" name="skillId" th:value="${skillId}" />
+  <input type="hidden" name="level" th:value="${level}" class="hb-level-select" />
+  <div class="hb-skill-form-actions">
+    <div class="hb-battery" th:attr="data-level=${level}">
+      <div class="hb-battery-segment" data-index="1" data-level="NOVICE" title="Novice"></div>
+      <div class="hb-battery-segment" data-index="2" data-level="INTERMEDIATE" title="Intermediate"></div>
+      <div class="hb-battery-segment" data-index="3" data-level="ADVANCED" title="Advanced"></div>
+      <div class="hb-battery-segment" data-index="4" data-level="EXPERT" title="Expert"></div>
+    </div>
+    <button class="hb-btn-basket" type="submit" aria-label="Add to basket" title="Add to basket">
+      <svg class="hb-icon-basket-add" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M2 5h12l-1 8.5a1 1 0 0 1-1 0.9H4a1 1 0 0 1-1-0.9L2 5z"/>
+        <path d="M5 5V4a3 3 0 0 1 6 0v1"/>
+        <path d="M7 9.5h3M8.5 8v3" stroke-width="1.5"/>
+      </svg>
+      <svg class="hb-icon-basket-added" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M2 5h12l-1 8.5a1 1 0 0 1-1 0.9H4a1 1 0 0 1-1-0.9L2 5z"/>
+        <path d="M5 5V4a3 3 0 0 1 6 0v1"/>
+        <path d="M6 9.5l2 2 3-3.5" stroke-width="1.5"/>
+      </svg>
+    </button>
+  </div>
+</th:block>
+</body>
+</html>

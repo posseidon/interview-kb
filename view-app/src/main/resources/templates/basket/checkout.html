@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('Checkout')}"></head>
+<body>
+  <th:block th:replace="~{fragments/common :: nav}"></th:block>
+
+  <main class="hb-page hb-page--search">
+    <a class="hb-back" th:href="@{/basket}">&lt; Basket</a>
+    <h1 class="hb-title">QUESTIONS</h1>
+    <div class="hb-stat" th:text="${totalQuestions} + ' questions matched'">N questions matched</div>
+
+    <th:block th:each="group, stat : ${groups}">
+      <div th:classappend="${stat.even} ? 'hb-cluster-header--solid' : 'hb-cluster-header--outline'"
+           class="hb-cluster-header"
+           th:text="${group.skillName} + ' (' + ${group.level} + ') — ' + ${#lists.size(group.questions)}">
+        SKILL (LEVEL) — N
+      </div>
+
+      <div class="hb-empty" th:if="${#lists.isEmpty(group.questions)}">No questions found for this skill/level yet.</div>
+
+      <a class="hb-question-row" th:each="q : ${group.questions}" th:href="@{/questions/{id}(id=${q.id})}">
+        <div class="hb-question-body">
+          <div class="hb-question-title" th:text="${q.content}">Question title</div>
+          <div class="hb-question-tag"
+               th:text="${q.requiresImpl ? 'Coding' : 'Theoretical'}">
+            TYPE
+          </div>
+        </div>
+      </a>
+    </th:block>
+  </main>
+</body>
+</html>

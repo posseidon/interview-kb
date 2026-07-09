@@ -113,27 +113,19 @@ Base URL: `http://localhost:8080`
 
 #### `POST /ingest`
 
-Upserts topics, tags, and questions. Idempotent — safe to call multiple times with the same data. After each question is saved it is mirrored into the vector store.
+Upserts questions, linking each question to existing skills by name. Idempotent — safe to call multiple times with the same data. Skills are not created here — they come from the skill catalog (`skills.xlsx` import); a name with no match is logged and the question is simply not linked to a skill for it. After each question is saved it is mirrored into the vector store.
 
 ```bash
 curl -X POST http://localhost:8080/ingest \
   -H "Content-Type: application/json" \
   -d '{
-    "topics": [
-      {
-        "slug": "kafka",
-        "name": "Kafka",
-        "description": "Event streaming and message broker concepts"
-      }
-    ],
     "questions": [
       {
         "external_id": "kafka-topic-vs-partition",
         "content": "What is a topic? What is a partition?",
         "requires_impl": false,
         "language": "en",
-        "topics": ["kafka"],
-        "tags": ["fundamentals", "architecture"],
+        "skills": ["Kafka"],
         "answers": [
           {
             "source": "human",
@@ -148,10 +140,6 @@ curl -X POST http://localhost:8080/ingest \
 **Response `200`**
 ```json
 {
-  "topicsCreated": 1,
-  "topicsUpdated": 0,
-  "tagsCreated": 2,
-  "tagsUpdated": 0,
   "questionsCreated": 1,
   "questionsUpdated": 0,
   "answersAdded": 1
@@ -160,62 +148,20 @@ curl -X POST http://localhost:8080/ingest \
 
 ---
 
-### Topics
+### Skills
 
-#### `GET /topics`
+#### `GET /skills/{id}/questions`
 
-Returns all topics.
-
-```bash
-curl http://localhost:8080/topics
-```
-
-**Response `200`**
-```json
-[
-  {
-    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "slug": "kafka",
-    "name": "Kafka",
-    "description": "Event streaming and message broker concepts"
-  }
-]
-```
-
-#### `GET /topics/{slug}/questions`
-
-Returns questions for a topic, ordered by frequency descending.
+Returns questions linked to a skill, ordered by frequency descending.
 
 ```bash
-curl "http://localhost:8080/topics/kafka/questions"
+curl "http://localhost:8080/skills/3fa85f64-5717-4562-b3fc-2c963f66afa6/questions"
 
 # With pagination
-curl "http://localhost:8080/topics/kafka/questions?page=0&size=10"
+curl "http://localhost:8080/skills/3fa85f64-5717-4562-b3fc-2c963f66afa6/questions?page=0&size=10"
 ```
 
 **Response `200`** — array of `QuestionView` (see schema below)
-
----
-
-### Tags
-
-#### `GET /tags`
-
-Returns all tags.
-
-```bash
-curl http://localhost:8080/tags
-```
-
-**Response `200`**
-```json
-[
-  {
-    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "name": "fundamentals"
-  }
-]
-```
 
 ---
 
@@ -227,8 +173,7 @@ Paginated listing with optional filters. Results are sorted by `frequency` desc 
 
 | Param  | Type   | Description                          |
 |--------|--------|--------------------------------------|
-| `topic`  | string | Filter by topic slug                 |
-| `tag`    | string | Filter by tag name                   |
+| `skill`  | uuid   | Filter by skill id                   |
 | `q`      | string | Keyword search in question content   |
 | `page`   | int    | Page number (0-based, default `0`)   |
 | `size`   | int    | Page size (default `20`)             |
@@ -238,17 +183,14 @@ Paginated listing with optional filters. Results are sorted by `frequency` desc 
 # All questions
 curl "http://localhost:8080/questions"
 
-# Filter by topic
-curl "http://localhost:8080/questions?topic=kafka"
-
-# Filter by tag
-curl "http://localhost:8080/questions?tag=fundamentals"
+# Filter by skill
+curl "http://localhost:8080/questions?skill=3fa85f64-5717-4562-b3fc-2c963f66afa6"
 
 # Keyword search
 curl "http://localhost:8080/questions?q=partition"
 
 # Combined filters with pagination
-curl "http://localhost:8080/questions?topic=kafka&tag=fundamentals&q=partition&page=0&size=10"
+curl "http://localhost:8080/questions?skill=3fa85f64-5717-4562-b3fc-2c963f66afa6&q=partition&page=0&size=10"
 
 # Sort by creation date descending
 curl "http://localhost:8080/questions?sort=createdAt,desc"
@@ -265,8 +207,7 @@ curl "http://localhost:8080/questions?sort=createdAt,desc"
       "requiresImpl": false,
       "language": "en",
       "frequency": 1,
-      "topics": ["kafka"],
-      "tags": ["fundamentals", "architecture"],
+      "skills": [{"id": "c1d2e3f4-1234-4562-b3fc-2c963f66afa6", "name": "Kafka"}],
       "answers": [
         {
           "id": "7fa12a64-1234-4562-b3fc-2c963f66afa6",
@@ -320,8 +261,7 @@ curl -X POST http://localhost:8080/ask \
       "requiresImpl": false,
       "language": "en",
       "frequency": 1,
-      "topics": ["kafka"],
-      "tags": ["fundamentals", "architecture"],
+      "skills": [{"id": "c1d2e3f4-1234-4562-b3fc-2c963f66afa6", "name": "Kafka"}],
       "answers": [
         {
           "id": "7fa12a64-1234-4562-b3fc-2c963f66afa6",
@@ -369,7 +309,7 @@ curl "http://localhost:8080/merge/candidates?threshold=0.85"
 
 Merges `sourceId` into `targetId`. This is **destructive and irreversible**:
 - Source answers are moved to the target
-- Topics and tags are unioned onto the target
+- Skills are unioned onto the target
 - `target.frequency += source.frequency`
 - Source is deleted from both the relational store and the vector store
 - A snapshot of the source is saved to `merge_log` for audit
@@ -401,7 +341,7 @@ curl http://localhost:8080/actuator/info
 
 ## QuestionView Schema
 
-Returned by `/questions`, `/questions/{id}`, `/topics/{slug}/questions`, and `/ask`.
+Returned by `/questions`, `/questions/{id}`, `/skills/{id}/questions`, and `/ask`.
 
 ```json
 {
@@ -411,8 +351,7 @@ Returned by `/questions`, `/questions/{id}`, `/topics/{slug}/questions`, and `/a
   "requiresImpl": "boolean",
   "language": "string",
   "frequency": "integer",
-  "topics": ["slug1", "slug2"],
-  "tags": ["tag1", "tag2"],
+  "skills": [{"id": "uuid", "name": "string"}],
   "answers": [
     {
       "id": "uuid",

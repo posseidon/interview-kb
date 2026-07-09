@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('Search &amp; Ask')}"></head>
+<body>
+  <th:block th:replace="~{fragments/common :: nav}"></th:block>
+
+  <main class="hb-page hb-page--search">
+    <div class="hb-search-shell">
+      <th:block th:if="${hasMatches}">
+        <div class="hb-search-toolbar">
+          <div class="hb-search-header">
+            <span class="hb-search-query" th:text="'“' + ${query} + '”'">&#8220;query&#8221;</span>
+            <span class="hb-search-count"
+                  th:text="${totalCount} + (${totalCount == 1} ? ' result' : ' results')">0 results</span>
+          </div>
+          <div class="hb-search-chips" id="hb-search-chips">
+            <span class="hb-chip-filter hb-chip-filter--active" data-skill=""
+                  th:text="'All · ' + ${totalCount}">All &middot; 0</span>
+            <span class="hb-chip-filter" th:each="group : ${groups}"
+                  th:attr="data-skill=${group.skillName}"
+                  th:text="${group.skillName} + ' · ' + ${group.count}">Skill &middot; 0</span>
+          </div>
+        </div>
+
+        <div class="hb-search-list" id="hb-search-list">
+          <th:block th:each="group : ${groups}">
+            <a class="hb-search-item" th:each="q : ${group.items}"
+               th:attr="data-skill=${group.skillName}"
+               th:href="@{/questions/{id}(id=${q.id})}">
+              <span class="hb-search-item-icon"
+                    th:classappend="${q.requiresImpl} ? 'hb-search-item-icon--coding' : 'hb-search-item-icon--theory'">
+                <svg th:if="${q.requiresImpl}" width="12" height="12" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="3"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="8 7 3 12 8 17"></polyline>
+                  <polyline points="16 7 21 12 16 17"></polyline>
+                </svg>
+                <svg th:unless="${q.requiresImpl}" width="12" height="12" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="3"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 6 C12 5 11 4 8 4 H4 v14 h4 c3 0 4 1 4 2"></path>
+                  <path d="M12 6 C12 5 13 4 16 4 H20 v14 h-4 c-3 0 -4 1 -4 2"></path>
+                </svg>
+              </span>
+              <span class="hb-search-item-title" th:text="${q.content}">Question title</span>
+            </a>
+          </th:block>
+        </div>
+
+        <div class="hb-search-empty" id="hb-search-filter-empty" style="display:none;">No results for this filter.</div>
+
+        <div class="hb-search-pager" id="hb-search-pager">
+          <button type="button" class="hb-pager-btn" id="hb-search-prev">&larr; Prev</button>
+          <span class="hb-pager-range" id="hb-search-range"></span>
+          <button type="button" class="hb-pager-btn" id="hb-search-next">Next &rarr;</button>
+        </div>
+      </th:block>
+
+      <div class="hb-search-empty" th:unless="${hasMatches}">No matches found. Query recorded.</div>
+
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var PAGE_SIZE = 14;
+      var list = document.getElementById('hb-search-list');
+      if (!list) return;
+
+      var chips = Array.prototype.slice.call(document.querySelectorAll('.hb-chip-filter'));
+      var items = Array.prototype.slice.call(list.querySelectorAll('.hb-search-item'));
+      var emptyEl = document.getElementById('hb-search-filter-empty');
+      var pager = document.getElementById('hb-search-pager');
+      var prevBtn = document.getElementById('hb-search-prev');
+      var nextBtn = document.getElementById('hb-search-next');
+      var rangeEl = document.getElementById('hb-search-range');
+
+      var activeSkill = '';
+      var page = 1;
+
+      function filtered() {
+        return items.filter(function (it) {
+          return !activeSkill || it.getAttribute('data-skill') === activeSkill;
+        });
+      }
+
+      function render() {
+        var all = filtered();
+        var totalPages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
+        page = Math.min(page, totalPages);
+        var start = (page - 1) * PAGE_SIZE;
+        var visible = all.slice(start, start + PAGE_SIZE);
+
+        items.forEach(function (it) { it.style.display = 'none'; });
+        visible.forEach(function (it) { it.style.display = 'flex'; });
+
+        emptyEl.style.display = all.length === 0 ? 'block' : 'none';
+        pager.style.display = all.length === 0 ? 'none' : 'flex';
+
+        prevBtn.disabled = page === 1;
+        nextBtn.disabled = page === totalPages;
+        var rangeStart = all.length === 0 ? 0 : start + 1;
+        var rangeEnd = Math.min(start + PAGE_SIZE, all.length);
+        rangeEl.textContent = (all.length === 0 ? 0 : rangeStart) + '–' + rangeEnd + ' of ' + all.length;
+      }
+
+      chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          activeSkill = chip.getAttribute('data-skill');
+          page = 1;
+          chips.forEach(function (c) { c.classList.toggle('hb-chip-filter--active', c === chip); });
+          render();
+        });
+      });
+
+      prevBtn.addEventListener('click', function () { page = Math.max(1, page - 1); render(); });
+      nextBtn.addEventListener('click', function () { page = page + 1; render(); });
+
+      render();
+    })();
+  </script>
+</body>
+</html>

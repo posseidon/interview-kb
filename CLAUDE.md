@@ -21,7 +21,7 @@ An **IT interview knowledge base**: a single-user (no auth) service that stores 
 
 ## Architecture (Approach A — idiomatic Spring AI)
 
-- Relational entities (`Topic`, `Question`, `Answer`, `Tag`, joins, `MergeLog`) are managed by **JPA**.
+- Relational entities (`Topic`, `Question`, `Answer`, joins, `MergeLog`) are managed by **JPA**.
 - Embeddings live in Spring AI's **`vector_store`** table via `PgVectorStore`. Each question is mirrored as a Spring AI `Document` whose **`id` equals the question UUID** (1:1), so deletes and lookups are trivial.
 - `Question` has **no embedding column** — the vector lives in `vector_store`.
 - Because `PgVectorStore` shares the same `DataSource`, relational + vector writes go in **one `@Transactional` method** and are atomic. Every question insert/update/delete must keep both stores in sync.
@@ -66,7 +66,7 @@ Health check: `GET /actuator/health` should be UP with DB (Supabase) + Ollama re
 
 - **Embedding dimension is 768** everywhere: the `vector(768)` column AND `spring.ai.vectorstore.pgvector.dimensions: 768`. A mismatch breaks index creation or returns silently-wrong results. (pgvector HNSW max is 2000 dims.)
 - No authentication, no multi-tenancy — single user.
-- Topic/tag filtering during RAG is done **relationally** (intersect vector hits with a JPA query), not via vector-store metadata filter expressions.
+- Topic filtering during RAG is done **relationally** (intersect vector hits with a JPA query), not via vector-store metadata filter expressions.
 - Merge is **destructive**: the source question is hard-deleted; its full snapshot is kept in `merge_log.source_snapshot`.
 - "Most common questions in X" is driven by `Question.frequency`, incremented on each merge.
 
