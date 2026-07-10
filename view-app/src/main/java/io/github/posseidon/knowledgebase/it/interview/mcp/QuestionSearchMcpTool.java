@@ -3,6 +3,7 @@ package io.github.posseidon.knowledgebase.it.interview.mcp;
 import io.github.posseidon.knowledgebase.it.interview.dto.question.QuestionView;
 import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
 import io.github.posseidon.knowledgebase.it.interview.util.QuestionMapper;
+import io.github.posseidon.knowledgebase.it.interview.util.QuestionScope;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.data.domain.PageRequest;
@@ -36,12 +37,6 @@ public class QuestionSearchMcpTool {
         List<QuestionView> results = questionRepository.findFilteredBySkill(null, query, page)
                 .stream().map(questionMapper::toView).toList();
 
-        if ("coding".equals(scope)) {
-            results = results.stream().filter(QuestionView::requiresImpl).toList();
-        } else if ("theory".equals(scope)) {
-            results = results.stream().filter(r -> !r.requiresImpl()).toList();
-        }
-
-        return results;
+        return QuestionScope.filter(results, scope);
     }
 }

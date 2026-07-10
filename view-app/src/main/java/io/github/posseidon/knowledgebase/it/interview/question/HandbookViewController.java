@@ -4,12 +4,11 @@ import io.github.posseidon.knowledgebase.it.interview.domain.question.Answer;
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
 import io.github.posseidon.knowledgebase.it.interview.domain.skill.Skill;
 import io.github.posseidon.knowledgebase.it.interview.dto.question.QuestionView;
-import io.github.posseidon.knowledgebase.it.interview.repo.AnswerRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.SkillRepository;
-import io.github.posseidon.knowledgebase.it.interview.util.ContentHash;
 import io.github.posseidon.knowledgebase.it.interview.util.Markdown;
 import io.github.posseidon.knowledgebase.it.interview.util.QuestionMapper;
+import io.github.posseidon.knowledgebase.it.interview.util.QuestionScope;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -36,17 +34,17 @@ public class HandbookViewController {
 
     private final SkillRepository skillRepository;
     private final QuestionRepository questionRepository;
-    private final AnswerRepository answerRepository;
     private final QuestionMapper questionMapper;
+    private final QuestionEditService questionEditService;
 
     public HandbookViewController(SkillRepository skillRepository,
                                   QuestionRepository questionRepository,
-                                  AnswerRepository answerRepository,
-                                  QuestionMapper questionMapper) {
+                                  QuestionMapper questionMapper,
+                                  QuestionEditService questionEditService) {
         this.skillRepository = skillRepository;
         this.questionRepository = questionRepository;
-        this.answerRepository = answerRepository;
         this.questionMapper = questionMapper;
+        this.questionEditService = questionEditService;
     }
 
     @GetMapping("/")
@@ -81,11 +79,7 @@ public class HandbookViewController {
             displayQuery = "";
         }
 
-        if ("coding".equals(scope)) {
-            results = results.stream().filter(QuestionView::requiresImpl).toList();
-        } else if ("theory".equals(scope)) {
-            results = results.stream().filter(r -> !r.requiresImpl()).toList();
-        }
+        results = QuestionScope.filter(results, scope);
 
         model.addAttribute("query", displayQuery);
         model.addAttribute("hasMatches", !results.isEmpty());
@@ -113,44 +107,23 @@ public class HandbookViewController {
         return "question/question-detail";
     }
 
-    @Transactional
     @PostMapping("/questions/{id}")
     public String updateQuestion(@PathVariable UUID id, @RequestParam String content) {
-        if (content == null || content.isBlank()) return "redirect:/questions/" + id;
-        Question question = questionRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        String stripped = content.strip();
-        String newHash = ContentHash.sha256(stripped);
-        if (!newHash.equals(question.getContentHash())) {
-            question.setContent(stripped);
-            question.setContentHash(newHash);
-            question.setUpdatedAt(Instant.now());
-        }
+        questionEditService.updateQuestionContent(id, content);
         return "redirect:/questions/" + id;
     }
 
-    @Transactional
     @PostMapping("/questions/{id}/answers")
     public String addAnswer(@PathVariable UUID id, @RequestParam String content) {
-        if (content == null || content.isBlank()) return "redirect:/questions/" + id;
-        Question question = questionRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        String stripped = content.strip();
-        answerRepository.save(new Answer(question, stripped, ContentHash.sha256(stripped), "human"));
+        questionEditService.addAnswer(id, content);
         return "redirect:/questions/" + id;
     }
 
-    @Transactional
     @PostMapping("/questions/{id}/answers/{answerId}")
     public String updateAnswer(@PathVariable UUID id,
                                @PathVariable UUID answerId,
                                @RequestParam String content) {
-        if (content == null || content.isBlank()) return "redirect:/questions/" + id;
-        Answer answer = answerRepository.findById(answerId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        String stripped = content.strip();
-        answer.setContent(stripped);
-        answer.setContentHash(ContentHash.sha256(stripped));
+        questionEditService.updateAnswer(answerId, content);
         return "redirect:/questions/" + id;
     }
 

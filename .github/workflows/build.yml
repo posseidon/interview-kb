@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      # Compiles, runs tests, and runs Checkstyle/PMD (report-only — see pom.xml,
+      # neither is configured to fail the build).
+      - name: Build, test, Checkstyle, PMD
+        run: mvn -B clean verify
+
+      # Only runs once a SonarCloud project + SONAR_TOKEN secret exist for this repo.
+      # Until then this step is skipped and the workflow stays green.
+      - name: SonarCloud analysis
+        if: ${{ secrets.SONAR_TOKEN != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar

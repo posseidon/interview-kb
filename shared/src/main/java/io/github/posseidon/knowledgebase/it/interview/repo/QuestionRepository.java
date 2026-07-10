@@ -10,9 +10,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, UUID> {
@@ -22,6 +24,16 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
 
     Optional<Question> findByContentHash(String contentHash);
     List<Question> findAllByContentHashIn(Collection<String> hashes);
+
+    default Map<String, Question> indexByExternalId(Collection<String> externalIds) {
+        return findAllByExternalIdIn(externalIds).stream()
+                .collect(Collectors.toMap(Question::getExternalId, q -> q));
+    }
+
+    default Map<String, Question> indexByContentHash(Collection<String> contentHashValues) {
+        return findAllByContentHashIn(contentHashValues).stream()
+                .collect(Collectors.toMap(Question::getContentHash, q -> q));
+    }
 
     long countByRequiresImpl(boolean requiresImpl);
 

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Answer;
 import io.github.posseidon.knowledgebase.it.interview.domain.merge.MergeLog;
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
-import io.github.posseidon.knowledgebase.it.interview.domain.skill.Skill;
+import io.github.posseidon.knowledgebase.it.interview.ingest.QuestionDocuments;
 import io.github.posseidon.knowledgebase.it.interview.repo.MergeLogRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
 import org.springframework.ai.document.Document;
@@ -79,12 +79,7 @@ public class MergeService {
         questionRepository.save(target);
 
         vectorStore.delete(List.of(sourceId.toString()));
-        vectorStore.add(List.of(Document.builder()
-                .id(target.getId().toString()).text(target.getContent())
-                .metadata(Map.of(
-                        "skills", target.getSkills().stream().map(Skill::getName).toList(),
-                        "frequency", target.getFrequency()))
-                .build()));
+        vectorStore.add(List.of(QuestionDocuments.toDocument(target)));
 
         questionRepository.deleteById(sourceId);
     }

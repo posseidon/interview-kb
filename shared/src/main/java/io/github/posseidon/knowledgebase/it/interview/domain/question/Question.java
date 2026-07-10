@@ -26,7 +26,7 @@ public class Question {
     private String contentHash;
 
     @Column(name = "requires_impl", nullable = false)
-    private Boolean requiresImpl = false;
+    private boolean requiresImpl = false;
 
     private String language;
 
@@ -92,11 +92,11 @@ public class Question {
         this.contentHash = contentHash;
     }
 
-    public Boolean getRequiresImpl() {
+    public boolean isRequiresImpl() {
         return requiresImpl;
     }
 
-    public void setRequiresImpl(Boolean requiresImpl) {
+    public void setRequiresImpl(boolean requiresImpl) {
         this.requiresImpl = requiresImpl;
     }
 
