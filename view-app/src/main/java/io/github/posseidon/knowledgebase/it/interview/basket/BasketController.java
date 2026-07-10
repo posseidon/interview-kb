@@ -13,13 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -32,7 +26,7 @@ public class BasketController {
     private final QuestionMapper questionMapper;
 
     public BasketController(Basket basket, SkillRepository skillRepository,
-                             QuestionRepository questionRepository, QuestionMapper questionMapper) {
+                            QuestionRepository questionRepository, QuestionMapper questionMapper) {
         this.basket = basket;
         this.skillRepository = skillRepository;
         this.questionRepository = questionRepository;
@@ -78,6 +72,12 @@ public class BasketController {
         return "basket/basket";
     }
 
+    private Map<UUID, Skill> skillsById(Collection<UUID> ids) {
+        if (ids.isEmpty()) return Map.of();
+        return skillRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(Skill::getId, s -> s));
+    }
+
     @Transactional(readOnly = true)
     @PostMapping("/checkout")
     public String checkout(Model model) {
@@ -101,12 +101,6 @@ public class BasketController {
         model.addAttribute("totalQuestions", byId.size());
         basket.clear();
         return "basket/checkout";
-    }
-
-    private Map<UUID, Skill> skillsById(Collection<UUID> ids) {
-        if (ids.isEmpty()) return Map.of();
-        return skillRepository.findAllById(ids).stream()
-                .collect(Collectors.toMap(Skill::getId, s -> s));
     }
 
     public record BasketItemView(UUID skillId, String skillName, String skillPath, SkillLevel level) {}

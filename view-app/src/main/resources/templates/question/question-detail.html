@@ -2,137 +2,149 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/common :: head(${question.content})}"></head>
 <body>
-  <th:block th:replace="~{fragments/common :: nav}"></th:block>
-  <main class="hb-page hb-page--detail">
+<th:block th:replace="~{fragments/common :: nav}"></th:block>
+<main class="hb-page hb-page--detail">
     <a class="hb-back"
-       th:href="${not #lists.isEmpty(question.skills)} ? @{/search(skill=${question.skills[0].id})} : @{/}"
-       onclick="if(history.length>1){history.back();return false;}">&lt; Back</a>
+       onclick="if(history.length>1){history.back();return false;}"
+       th:href="${not #lists.isEmpty(question.skills)} ? @{/search(skill=${question.skills[0].id})} : @{/}">&lt;
+        Back</a>
     <div class="hb-chip" th:if="${not #lists.isEmpty(question.skills)}" th:text="${question.skills[0].name}">KAFKA</div>
     <div class="hb-detail-title" id="hb-question-title" th:utext="${questionContentHtml}">Question title</div>
     <button class="hb-edit-toggle" id="hb-question-edit-btn"
-            type="button" onclick="toggleEditQuestion()">Edit question</button>
-    <form id="hb-question-edit-form" class="hb-answer-form"
+            onclick="toggleEditQuestion()" type="button">Edit question
+    </button>
+    <form class="hb-answer-form" id="hb-question-edit-form"
           method="post" th:action="@{/questions/{id}(id=${question.id})}">
-      <div class="hb-answer-form-label">EDIT QUESTION</div>
-      <textarea class="hb-answer-textarea" name="content" rows="4"
-                th:text="${question.content}" required></textarea>
-      <div class="hb-answer-actions">
-        <button class="hb-btn hb-btn--primary" type="submit">Save</button>
-        <button class="hb-btn" type="button" onclick="toggleEditQuestion()">Cancel</button>
-      </div>
+        <div class="hb-answer-form-label">EDIT QUESTION</div>
+        <textarea class="hb-answer-textarea" name="content" required
+                  rows="4" th:text="${question.content}"></textarea>
+        <div class="hb-answer-actions">
+            <button class="hb-btn hb-btn--primary" type="submit">Save</button>
+            <button class="hb-btn" onclick="toggleEditQuestion()" type="button">Cancel</button>
+        </div>
     </form>
 
     <div class="hb-meta">
-      <th:block th:if="${not #lists.isEmpty(question.skills)}">Skill: <span th:text="${question.skills[0].name}">kafka</span> &middot; </th:block>
-      Added <span th:text="${createdAtDisplay}">Apr 2, 2026</span>
-      <th:block th:if="${question.externalId != null}"> &middot; ID: <span th:text="${question.externalId}">ext-123</span></th:block>
+        <th:block th:if="${not #lists.isEmpty(question.skills)}">Skill: <span
+                th:text="${question.skills[0].name}">kafka</span> &middot;
+        </th:block>
+        Added <span th:text="${createdAtDisplay}">Apr 2, 2026</span>
+        <th:block th:if="${question.externalId != null}"> &middot; ID: <span
+                th:text="${question.externalId}">ext-123</span></th:block>
     </div>
 
     <!-- Answers -->
     <th:block th:if="${not #lists.isEmpty(answerDetails)}">
-      <div th:each="answer, stat : ${answerDetails}" class="hb-answer-block">
-        <div class="hb-answer-divider" th:if="${not stat.first}"></div>
+        <div class="hb-answer-block" th:each="answer, stat : ${answerDetails}">
+            <div class="hb-answer-divider" th:if="${not stat.first}"></div>
 
-        <!-- Source label when there are multiple answers -->
-        <div class="hb-answer-source"
-             th:if="${#lists.size(answerDetails) > 1}"
-             th:text="${answer.source}">human</div>
+            <!-- Source label when there are multiple answers -->
+            <div class="hb-answer-source"
+                 th:if="${#lists.size(answerDetails) > 1}"
+                 th:text="${answer.source}">human
+            </div>
 
-        <!-- Rendered markdown -->
-        <div th:id="'hb-view-' + ${answer.id}"
-             class="hb-answer-rendered"
-             th:utext="${answer.htmlContent}"></div>
+            <!-- Rendered markdown -->
+            <div class="hb-answer-rendered"
+                 th:id="'hb-view-' + ${answer.id}"
+                 th:utext="${answer.htmlContent}"></div>
 
-        <!-- Edit toggle -->
-        <button class="hb-edit-toggle"
-                type="button"
-                th:attr="data-id=${answer.id}"
-                onclick="toggleEdit(this.dataset.id)">Edit</button>
-
-        <!-- Edit form (hidden by default) -->
-        <form th:id="'hb-edit-' + ${answer.id}"
-              class="hb-answer-form"
-              method="post"
-              th:action="@{/questions/{qid}/answers/{aid}(qid=${question.id},aid=${answer.id})}">
-          <div class="hb-answer-form-label">EDIT ANSWER — markdown supported</div>
-          <textarea class="hb-answer-textarea"
-                    name="content"
-                    rows="14"
-                    th:text="${answer.rawContent}"
-                    required></textarea>
-          <div class="hb-answer-actions">
-            <button class="hb-btn hb-btn--primary" type="submit">Save</button>
-            <button class="hb-btn" type="button"
+            <!-- Edit toggle -->
+            <button class="hb-edit-toggle"
+                    onclick="toggleEdit(this.dataset.id)"
                     th:attr="data-id=${answer.id}"
-                    onclick="toggleEdit(this.dataset.id)">Cancel</button>
-          </div>
-        </form>
-      </div>
+                    type="button">Edit
+            </button>
+
+            <!-- Edit form (hidden by default) -->
+            <form class="hb-answer-form"
+                  method="post"
+                  th:action="@{/questions/{qid}/answers/{aid}(qid=${question.id},aid=${answer.id})}"
+                  th:id="'hb-edit-' + ${answer.id}">
+                <div class="hb-answer-form-label">EDIT ANSWER — markdown supported</div>
+                <textarea class="hb-answer-textarea"
+                          name="content"
+                          required
+                          rows="14"
+                          th:text="${answer.rawContent}"></textarea>
+                <div class="hb-answer-actions">
+                    <button class="hb-btn hb-btn--primary" type="submit">Save</button>
+                    <button class="hb-btn" onclick="toggleEdit(this.dataset.id)"
+                            th:attr="data-id=${answer.id}"
+                            type="button">Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
     </th:block>
 
     <p class="hb-empty" th:if="${#lists.isEmpty(answerDetails)}">No answer yet.</p>
 
     <!-- Add Answer -->
     <div class="hb-add-answer">
-      <button class="hb-add-toggle" type="button" id="hb-toggle-btn" onclick="toggleAddForm()">+ Add Answer</button>
-      <form id="hb-answer-form" class="hb-answer-form"
-            method="post" th:action="@{/questions/{id}/answers(id=${question.id})}">
-        <div class="hb-answer-form-label">ADD ANSWER — markdown supported</div>
-        <textarea class="hb-answer-textarea" name="content" rows="14"
-                  placeholder="Paste your answer here (markdown supported)..." required></textarea>
-        <div class="hb-answer-actions">
-          <button class="hb-btn hb-btn--primary" type="submit">Save</button>
-          <button class="hb-btn" type="button" onclick="toggleAddForm()">Cancel</button>
-        </div>
-      </form>
+        <button class="hb-add-toggle" id="hb-toggle-btn" onclick="toggleAddForm()" type="button">+ Add Answer</button>
+        <form class="hb-answer-form" id="hb-answer-form"
+              method="post" th:action="@{/questions/{id}/answers(id=${question.id})}">
+            <div class="hb-answer-form-label">ADD ANSWER — markdown supported</div>
+            <textarea class="hb-answer-textarea" name="content"
+                      placeholder="Paste your answer here (markdown supported)..."
+                      required rows="14"></textarea>
+            <div class="hb-answer-actions">
+                <button class="hb-btn hb-btn--primary" type="submit">Save</button>
+                <button class="hb-btn" onclick="toggleAddForm()" type="button">Cancel</button>
+            </div>
+        </form>
     </div>
-  </main>
+</main>
 
-  <script>
+<script>
     /* Code blocks in rendered markdown: tap to copy */
     document.querySelectorAll('.hb-answer-rendered pre').forEach(function (pre) {
-      pre.title = 'Tap to copy';
-      pre.addEventListener('click', function () {
-        var code = pre.querySelector('code') ? pre.querySelector('code').textContent : pre.textContent;
-        if (navigator.clipboard) navigator.clipboard.writeText(code).catch(function () {});
-        pre.classList.add('hb-code--flash');
-        setTimeout(function () { pre.classList.remove('hb-code--flash'); }, 500);
-      });
+        pre.title = 'Tap to copy';
+        pre.addEventListener('click', function () {
+            var code = pre.querySelector('code') ? pre.querySelector('code').textContent : pre.textContent;
+            if (navigator.clipboard) navigator.clipboard.writeText(code).catch(function () {
+            });
+            pre.classList.add('hb-code--flash');
+            setTimeout(function () {
+                pre.classList.remove('hb-code--flash');
+            }, 500);
+        });
     });
 
     /* Per-answer edit toggle */
     function toggleEdit(answerId) {
-      var view = document.getElementById('hb-view-' + answerId);
-      var form = document.getElementById('hb-edit-' + answerId);
-      var editBtn = form.previousElementSibling; /* the Edit button */
-      var showing = form.style.display === 'block';
-      form.style.display = showing ? 'none' : 'block';
-      view.style.display = showing ? '' : 'none';
-      editBtn.style.display = showing ? '' : 'none';
-      if (!showing) form.querySelector('textarea').focus();
+        var view = document.getElementById('hb-view-' + answerId);
+        var form = document.getElementById('hb-edit-' + answerId);
+        var editBtn = form.previousElementSibling; /* the Edit button */
+        var showing = form.style.display === 'block';
+        form.style.display = showing ? 'none' : 'block';
+        view.style.display = showing ? '' : 'none';
+        editBtn.style.display = showing ? '' : 'none';
+        if (!showing) form.querySelector('textarea').focus();
     }
 
     /* Edit question toggle */
     function toggleEditQuestion() {
-      var title   = document.getElementById('hb-question-title');
-      var editBtn = document.getElementById('hb-question-edit-btn');
-      var form    = document.getElementById('hb-question-edit-form');
-      var showing = form.style.display === 'block';
-      form.style.display  = showing ? 'none' : 'block';
-      title.style.display  = showing ? ''     : 'none';
-      editBtn.style.display = showing ? ''     : 'none';
-      if (!showing) form.querySelector('textarea').focus();
+        var title = document.getElementById('hb-question-title');
+        var editBtn = document.getElementById('hb-question-edit-btn');
+        var form = document.getElementById('hb-question-edit-form');
+        var showing = form.style.display === 'block';
+        form.style.display = showing ? 'none' : 'block';
+        title.style.display = showing ? '' : 'none';
+        editBtn.style.display = showing ? '' : 'none';
+        if (!showing) form.querySelector('textarea').focus();
     }
 
     /* Add-answer toggle */
     function toggleAddForm() {
-      var form = document.getElementById('hb-answer-form');
-      var btn  = document.getElementById('hb-toggle-btn');
-      var hidden = form.style.display !== 'block';
-      form.style.display = hidden ? 'block' : 'none';
-      btn.style.display  = hidden ? 'none'  : '';
-      if (hidden) form.querySelector('textarea').focus();
+        var form = document.getElementById('hb-answer-form');
+        var btn = document.getElementById('hb-toggle-btn');
+        var hidden = form.style.display !== 'block';
+        form.style.display = hidden ? 'block' : 'none';
+        btn.style.display = hidden ? 'none' : '';
+        if (hidden) form.querySelector('textarea').focus();
     }
-  </script>
+</script>
 </body>
 </html>

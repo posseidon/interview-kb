@@ -1,8 +1,8 @@
 package io.github.posseidon.knowledgebase.it.interview.merge;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.posseidon.knowledgebase.it.interview.domain.question.Answer;
 import io.github.posseidon.knowledgebase.it.interview.domain.merge.MergeLog;
+import io.github.posseidon.knowledgebase.it.interview.domain.question.Answer;
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
 import io.github.posseidon.knowledgebase.it.interview.ingest.QuestionDocuments;
 import io.github.posseidon.knowledgebase.it.interview.repo.MergeLogRepository;

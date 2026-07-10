@@ -6,7 +6,8 @@ import io.github.posseidon.knowledgebase.it.interview.dto.ingest.request.Questio
 import io.github.posseidon.knowledgebase.it.interview.dto.interview.InterviewDto;
 import io.github.posseidon.knowledgebase.it.interview.dto.interview.InterviewIngestResponse;
 import io.github.posseidon.knowledgebase.it.interview.ingest.QuestionUpsertService;
-import io.github.posseidon.knowledgebase.it.interview.repo.*;
+import io.github.posseidon.knowledgebase.it.interview.repo.InterviewRepository;
+import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,20 +45,6 @@ public class InterviewIngestService {
                 interview.getId(), interview.getProjectCode(), interview.getQuestions().size());
     }
 
-    @Transactional
-    public InterviewIngestResponse addQuestions(InterviewDto dto) {
-        Interview interview = interviewRepository.findByProjectCode(dto.projectCode())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Interview not found for project_code: " + dto.projectCode()));
-
-        Map<UUID, Question> allById = resolveQuestions(dto);
-        interview.getQuestions().addAll(allById.values());
-        interviewRepository.save(interview);
-
-        return new InterviewIngestResponse(
-                interview.getId(), interview.getProjectCode(), interview.getQuestions().size());
-    }
-
     private Map<UUID, Question> resolveQuestions(InterviewDto dto) {
         List<Question> inlineQuestions = upsertInlineQuestions(dto.questions());
 
@@ -73,5 +60,19 @@ public class InterviewIngestService {
 
     private List<Question> upsertInlineQuestions(List<QuestionDto> dtos) {
         return questionUpsertService.upsert(dtos).questions();
+    }
+
+    @Transactional
+    public InterviewIngestResponse addQuestions(InterviewDto dto) {
+        Interview interview = interviewRepository.findByProjectCode(dto.projectCode())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Interview not found for project_code: " + dto.projectCode()));
+
+        Map<UUID, Question> allById = resolveQuestions(dto);
+        interview.getQuestions().addAll(allById.values());
+        interviewRepository.save(interview);
+
+        return new InterviewIngestResponse(
+                interview.getId(), interview.getProjectCode(), interview.getQuestions().size());
     }
 }

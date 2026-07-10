@@ -67,14 +67,18 @@ public class QuestionUpsertService {
         return skillResolver.resolve(allSkillNames);
     }
 
-    /** Batch fetch — one query for every externalId in the batch instead of one per question. */
+    /**
+     * Batch fetch — one query for every externalId in the batch instead of one per question.
+     */
     private Map<String, Question> indexExistingByExternalId(List<QuestionDto> dtos) {
         Set<String> allExternalIds = dtos.stream()
                 .map(QuestionDto::externalId).filter(Objects::nonNull).collect(Collectors.toSet());
         return questionRepository.indexByExternalId(allExternalIds);
     }
 
-    /** Batch fetch — one query for every content hash in the batch instead of one per question. */
+    /**
+     * Batch fetch — one query for every content hash in the batch instead of one per question.
+     */
     private Map<String, Question> indexExistingByContentHash(List<QuestionDto> dtos) {
         Set<String> allContentHashes = dtos.stream()
                 .map(d -> ContentHash.sha256(d.content())).collect(Collectors.toSet());
@@ -94,39 +98,9 @@ public class QuestionUpsertService {
         return match;
     }
 
-    private ResolvedQuestion findOrCreate(QuestionDto dto,
-                                          Map<String, Question> byExternalId,
-                                          Map<String, Question> byContentHash) {
-        String contentHash = ContentHash.sha256(dto.content());
-
-        if (dto.externalId() != null && byExternalId.containsKey(dto.externalId())) {
-            Question question = byExternalId.get(dto.externalId());
-            boolean vectorStale = updateContentIfChanged(question, dto.content(), contentHash);
-            return new ResolvedQuestion(question, false, vectorStale);
-        }
-        if (byContentHash.containsKey(contentHash)) {
-            return new ResolvedQuestion(byContentHash.get(contentHash), false, false);
-        }
-        return new ResolvedQuestion(new Question(dto.content(), contentHash), true, false);
-    }
-
-    /** @return whether the content actually changed (and the vector-store entry is now stale). */
-    private boolean updateContentIfChanged(Question question, String newContent, String newContentHash) {
-        if (question.getContentHash().equals(newContentHash)) return false;
-        question.setContent(newContent);
-        question.setContentHash(newContentHash);
-        return true;
-    }
-
-    private void applyDtoFields(Question question, QuestionDto dto, Map<String, Skill> skillByName) {
-        question.setExternalId(dto.externalId());
-        question.setRequiresImpl(dto.requiresImpl());
-        question.setLanguage(dto.language());
-        question.setSkills(dto.skills().stream().map(skillByName::get)
-                .filter(Objects::nonNull).collect(Collectors.toSet()));
-    }
-
-    /** Batch fetch — one query for every pre-existing question's answer hashes. */
+    /**
+     * Batch fetch — one query for every pre-existing question's answer hashes.
+     */
     private Map<UUID, Set<String>> loadExistingAnswerHashes(List<ResolvedQuestion> resolved) {
         Set<UUID> preExistingIds = resolved.stream()
                 .filter(r -> !r.created())
@@ -136,7 +110,9 @@ public class QuestionUpsertService {
         return answerRepository.groupContentHashesByQuestionId(preExistingIds);
     }
 
-    /** Deletes stale vector-store entries for edited questions, then batch-saves all questions. */
+    /**
+     * Deletes stale vector-store entries for edited questions, then batch-saves all questions.
+     */
     private List<Question> saveQuestions(List<ResolvedQuestion> resolved) {
         List<String> staleVectorIds = resolved.stream()
                 .filter(ResolvedQuestion::vectorStale)
@@ -147,7 +123,9 @@ public class QuestionUpsertService {
         return questionRepository.saveAll(resolved.stream().map(ResolvedQuestion::question).toList());
     }
 
-    /** Relies on {@code saved} being in the same order as {@code dtos} (saveAll preserves input order). */
+    /**
+     * Relies on {@code saved} being in the same order as {@code dtos} (saveAll preserves input order).
+     */
     private int saveNewAnswers(List<QuestionDto> dtos, List<Question> saved,
                                Map<UUID, Set<String>> existingAnswerHashes) {
         List<Answer> answersToSave = new ArrayList<>();
@@ -168,10 +146,46 @@ public class QuestionUpsertService {
         return answersToSave.size();
     }
 
-    /** Single vectorStore.add — one Ollama embedding request for the whole batch. */
+    /**
+     * Single vectorStore.add — one Ollama embedding request for the whole batch.
+     */
     private void syncVectorStore(List<Question> saved) {
         List<Document> docs = saved.stream().map(QuestionDocuments::toDocument).toList();
         vectorStore.add(docs);
+    }
+
+    private ResolvedQuestion findOrCreate(QuestionDto dto,
+                                          Map<String, Question> byExternalId,
+                                          Map<String, Question> byContentHash) {
+        String contentHash = ContentHash.sha256(dto.content());
+
+        if (dto.externalId() != null && byExternalId.containsKey(dto.externalId())) {
+            Question question = byExternalId.get(dto.externalId());
+            boolean vectorStale = updateContentIfChanged(question, dto.content(), contentHash);
+            return new ResolvedQuestion(question, false, vectorStale);
+        }
+        if (byContentHash.containsKey(contentHash)) {
+            return new ResolvedQuestion(byContentHash.get(contentHash), false, false);
+        }
+        return new ResolvedQuestion(new Question(dto.content(), contentHash), true, false);
+    }
+
+    private void applyDtoFields(Question question, QuestionDto dto, Map<String, Skill> skillByName) {
+        question.setExternalId(dto.externalId());
+        question.setRequiresImpl(dto.requiresImpl());
+        question.setLanguage(dto.language());
+        question.setSkills(dto.skills().stream().map(skillByName::get)
+                .filter(Objects::nonNull).collect(Collectors.toSet()));
+    }
+
+    /**
+     * @return whether the content actually changed (and the vector-store entry is now stale).
+     */
+    private boolean updateContentIfChanged(Question question, String newContent, String newContentHash) {
+        if (question.getContentHash().equals(newContentHash)) return false;
+        question.setContent(newContent);
+        question.setContentHash(newContentHash);
+        return true;
     }
 
     private record ResolvedQuestion(Question question, boolean created, boolean vectorStale) {}

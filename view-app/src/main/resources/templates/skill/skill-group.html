@@ -2,87 +2,107 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/common :: head(${current.name})}"></head>
 <body>
-  <th:block th:replace="~{fragments/common :: nav}"></th:block>
+<th:block th:replace="~{fragments/common :: nav}"></th:block>
 
-  <main class="hb-page hb-page--skills">
+<main class="hb-page hb-page--skills">
     <a class="hb-back" th:href="@{/skills}">&lt; Skills</a>
     <div class="hb-breadcrumb">
-      <th:block th:each="b, iter : ${breadcrumb}">
-        <a th:if="${!iter.last}" th:href="@{/skills/{id}(id=${b.id})}" th:text="${b.name}">Ancestor</a>
-        <span th:if="${iter.last}" th:text="${b.name}">Current</span>
-        <span th:if="${!iter.last}"> / </span>
-      </th:block>
+        <th:block th:each="b, iter : ${breadcrumb}">
+            <a th:href="@{/skills/{id}(id=${b.id})}" th:if="${!iter.last}" th:text="${b.name}">Ancestor</a>
+            <span th:if="${iter.last}" th:text="${b.name}">Current</span>
+            <span th:if="${!iter.last}"> / </span>
+        </th:block>
     </div>
 
     <h1 class="hb-title" th:text="${current.name}">Group name</h1>
     <p class="hb-skill-desc hb-skill-desc--full" th:if="${current.description}" th:text="${current.description}">
-      Full description
+        Full description
     </p>
     <div class="hb-skill-meta" th:if="${current.positionCount} != null"
-         th:text="${current.positionCount} + ' positions require this'">N positions require this</div>
+         th:text="${current.positionCount} + ' positions require this'">N positions require this
+    </div>
 
     <form class="hb-skill-form hb-skill-form--current" method="post" th:action="@{/basket/items}">
-      <th:block th:replace="~{fragments/common :: skillLevelPicker(${current.id}, 'INTERMEDIATE')}"></th:block>
+        <th:block th:replace="~{fragments/common :: skillLevelPicker(${current.id}, 'INTERMEDIATE')}"></th:block>
     </form>
 
     <div class="hb-criteria-tabs"
          th:if="${current.noviceCriteria} != null or ${current.intermediateCriteria} != null
                  or ${current.advancedCriteria} != null or ${current.expertCriteria} != null"
          th:with="firstLevel=${current.noviceCriteria != null ? 'novice' : (current.intermediateCriteria != null ? 'intermediate' : (current.advancedCriteria != null ? 'advanced' : (current.expertCriteria != null ? 'expert' : null)))}">
-      <div class="hb-criteria-tabbar">
-        <button type="button" class="hb-criteria-tab" th:classappend="${firstLevel == 'novice'} ? 'hb-criteria-tab--active' : ''"
-                th:if="${current.noviceCriteria}" data-level="novice">Novice</button>
-        <button type="button" class="hb-criteria-tab" th:classappend="${firstLevel == 'intermediate'} ? 'hb-criteria-tab--active' : ''"
-                th:if="${current.intermediateCriteria}" data-level="intermediate">Intermediate</button>
-        <button type="button" class="hb-criteria-tab" th:classappend="${firstLevel == 'advanced'} ? 'hb-criteria-tab--active' : ''"
-                th:if="${current.advancedCriteria}" data-level="advanced">Advanced</button>
-        <button type="button" class="hb-criteria-tab" th:classappend="${firstLevel == 'expert'} ? 'hb-criteria-tab--active' : ''"
-                th:if="${current.expertCriteria}" data-level="expert">Expert</button>
-      </div>
-      <div class="hb-criteria-panel" th:classappend="${firstLevel == 'novice'} ? 'hb-criteria-panel--active' : ''"
-           th:if="${current.noviceCriteria}" data-level="novice" th:text="${current.noviceCriteria}">Novice criteria</div>
-      <div class="hb-criteria-panel" th:classappend="${firstLevel == 'intermediate'} ? 'hb-criteria-panel--active' : ''"
-           th:if="${current.intermediateCriteria}" data-level="intermediate" th:text="${current.intermediateCriteria}">Intermediate criteria</div>
-      <div class="hb-criteria-panel" th:classappend="${firstLevel == 'advanced'} ? 'hb-criteria-panel--active' : ''"
-           th:if="${current.advancedCriteria}" data-level="advanced" th:text="${current.advancedCriteria}">Advanced criteria</div>
-      <div class="hb-criteria-panel" th:classappend="${firstLevel == 'expert'} ? 'hb-criteria-panel--active' : ''"
-           th:if="${current.expertCriteria}" data-level="expert" th:text="${current.expertCriteria}">Expert criteria</div>
+        <div class="hb-criteria-tabbar">
+            <button class="hb-criteria-tab" data-level="novice"
+                    th:classappend="${firstLevel == 'novice'} ? 'hb-criteria-tab--active' : ''"
+                    th:if="${current.noviceCriteria}" type="button">Novice
+            </button>
+            <button class="hb-criteria-tab" data-level="intermediate"
+                    th:classappend="${firstLevel == 'intermediate'} ? 'hb-criteria-tab--active' : ''"
+                    th:if="${current.intermediateCriteria}" type="button">Intermediate
+            </button>
+            <button class="hb-criteria-tab" data-level="advanced"
+                    th:classappend="${firstLevel == 'advanced'} ? 'hb-criteria-tab--active' : ''"
+                    th:if="${current.advancedCriteria}" type="button">Advanced
+            </button>
+            <button class="hb-criteria-tab" data-level="expert"
+                    th:classappend="${firstLevel == 'expert'} ? 'hb-criteria-tab--active' : ''"
+                    th:if="${current.expertCriteria}" type="button">Expert
+            </button>
+        </div>
+        <div class="hb-criteria-panel" data-level="novice"
+             th:classappend="${firstLevel == 'novice'} ? 'hb-criteria-panel--active' : ''"
+             th:if="${current.noviceCriteria}" th:text="${current.noviceCriteria}">Novice criteria
+        </div>
+        <div class="hb-criteria-panel"
+             data-level="intermediate"
+             th:classappend="${firstLevel == 'intermediate'} ? 'hb-criteria-panel--active' : ''"
+             th:if="${current.intermediateCriteria}"
+             th:text="${current.intermediateCriteria}">Intermediate criteria
+        </div>
+        <div class="hb-criteria-panel" data-level="advanced"
+             th:classappend="${firstLevel == 'advanced'} ? 'hb-criteria-panel--active' : ''"
+             th:if="${current.advancedCriteria}" th:text="${current.advancedCriteria}">Advanced
+            criteria
+        </div>
+        <div class="hb-criteria-panel" data-level="expert"
+             th:classappend="${firstLevel == 'expert'} ? 'hb-criteria-panel--active' : ''"
+             th:if="${current.expertCriteria}" th:text="${current.expertCriteria}">Expert criteria
+        </div>
     </div>
 
-    <div th:if="${#lists.isEmpty(children)} and ${current.group}" class="hb-empty">No skills under this group yet.</div>
+    <div class="hb-empty" th:if="${#lists.isEmpty(children)} and ${current.group}">No skills under this group yet.</div>
 
     <div class="hb-skill-row" th:each="c : ${children}">
-      <a th:if="${c.group}" class="hb-topic-row" th:href="@{/skills/{id}(id=${c.id})}">
-        <div>
-          <div class="hb-topic-name" th:text="${c.name}">Subgroup name</div>
-          <div class="hb-skill-desc" th:if="${c.description}" th:text="${c.description}">Description</div>
-          <div class="hb-skill-meta" th:text="${c.childCount} + ' skills'">N skills</div>
-        </div>
-      </a>
+        <a class="hb-topic-row" th:href="@{/skills/{id}(id=${c.id})}" th:if="${c.group}">
+            <div>
+                <div class="hb-topic-name" th:text="${c.name}">Subgroup name</div>
+                <div class="hb-skill-desc" th:if="${c.description}" th:text="${c.description}">Description</div>
+                <div class="hb-skill-meta" th:text="${c.childCount} + ' skills'">N skills</div>
+            </div>
+        </a>
 
-      <a th:unless="${c.group}" class="hb-skill-link" th:href="@{/skills/{id}(id=${c.id})}">
-        <div class="hb-topic-name" th:text="${c.name}">Skill name</div>
-        <div class="hb-skill-desc" th:if="${c.description}" th:text="${c.description}">Description</div>
-      </a>
-      <form th:unless="${c.group}" class="hb-skill-form" method="post" th:action="@{/basket/items}">
-        <th:block th:replace="~{fragments/common :: skillLevelPicker(${c.id}, 'INTERMEDIATE')}"></th:block>
-      </form>
+        <a class="hb-skill-link" th:href="@{/skills/{id}(id=${c.id})}" th:unless="${c.group}">
+            <div class="hb-topic-name" th:text="${c.name}">Skill name</div>
+            <div class="hb-skill-desc" th:if="${c.description}" th:text="${c.description}">Description</div>
+        </a>
+        <form class="hb-skill-form" method="post" th:action="@{/basket/items}" th:unless="${c.group}">
+            <th:block th:replace="~{fragments/common :: skillLevelPicker(${c.id}, 'INTERMEDIATE')}"></th:block>
+        </form>
     </div>
-  </main>
+</main>
 
-  <script th:src="@{/js/skill-basket.js}"></script>
-  <script>
+<script th:src="@{/js/skill-basket.js}"></script>
+<script>
     document.querySelectorAll('.hb-criteria-tab').forEach(function (tab) {
-      tab.addEventListener('click', function () {
-        var level = tab.getAttribute('data-level');
-        document.querySelectorAll('.hb-criteria-tab').forEach(function (t) {
-          t.classList.toggle('hb-criteria-tab--active', t === tab);
+        tab.addEventListener('click', function () {
+            var level = tab.getAttribute('data-level');
+            document.querySelectorAll('.hb-criteria-tab').forEach(function (t) {
+                t.classList.toggle('hb-criteria-tab--active', t === tab);
+            });
+            document.querySelectorAll('.hb-criteria-panel').forEach(function (p) {
+                p.classList.toggle('hb-criteria-panel--active', p.getAttribute('data-level') === level);
+            });
         });
-        document.querySelectorAll('.hb-criteria-panel').forEach(function (p) {
-          p.classList.toggle('hb-criteria-panel--active', p.getAttribute('data-level') === level);
-        });
-      });
     });
-  </script>
+</script>
 </body>
 </html>

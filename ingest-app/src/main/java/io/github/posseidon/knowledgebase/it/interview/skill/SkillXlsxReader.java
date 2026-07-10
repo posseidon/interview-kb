@@ -12,7 +12,9 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Reads the skill-tree import spreadsheet into {@link SkillRow}s; knows nothing about persistence. */
+/**
+ * Reads the skill-tree import spreadsheet into {@link SkillRow}s; knows nothing about persistence.
+ */
 @Component
 class SkillXlsxReader {
 
@@ -25,7 +27,9 @@ class SkillXlsxReader {
     private static final int COL_EXPERT = 8;
     private static final int COL_POSITION = 13;
 
-    /** Takes ownership of {@code in} and closes it. */
+    /**
+     * Takes ownership of {@code in} and closes it.
+     */
     List<SkillRow> read(InputStream in) {
         try (in; Workbook workbook = WorkbookFactory.create(in)) {
             Sheet sheet = workbook.getSheetAt(0);

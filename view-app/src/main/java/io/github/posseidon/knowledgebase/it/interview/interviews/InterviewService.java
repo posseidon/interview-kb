@@ -4,8 +4,8 @@ import io.github.posseidon.knowledgebase.it.interview.domain.interview.Decision;
 import io.github.posseidon.knowledgebase.it.interview.domain.interview.Interview;
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
 import io.github.posseidon.knowledgebase.it.interview.dto.interview.InterviewView;
-import io.github.posseidon.knowledgebase.it.interview.dto.question.QuestionView;
 import io.github.posseidon.knowledgebase.it.interview.dto.interview.SkillGroup;
+import io.github.posseidon.knowledgebase.it.interview.dto.question.QuestionView;
 import io.github.posseidon.knowledgebase.it.interview.dto.question.SkillRef;
 import io.github.posseidon.knowledgebase.it.interview.repo.InterviewRepository;
 import io.github.posseidon.knowledgebase.it.interview.util.Markdown;
@@ -34,11 +34,6 @@ public class InterviewService {
         return interviewRepository.findAllByOrderByDateAsc().stream()
                 .map(this::toView)
                 .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<InterviewView> findById(UUID id) {
-        return interviewRepository.findById(id).map(this::toView);
     }
 
     private InterviewView toView(Interview iv) {
@@ -89,5 +84,10 @@ public class InterviewService {
             case MAYBE -> "MAYBE";
             case GOOD_CANDIDATE -> "GOOD CANDIDATE";
         };
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<InterviewView> findById(UUID id) {
+        return interviewRepository.findById(id).map(this::toView);
     }
 }

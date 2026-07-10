@@ -2,6 +2,7 @@ package io.github.posseidon.knowledgebase.it.interview.domain.interview;
 
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
 import jakarta.persistence.*;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -45,27 +46,35 @@ public class Interview {
 
     public Interview() {}
 
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
+    public UUID getId() {return id;}
 
-    public String getProjectCode() { return projectCode; }
-    public void setProjectCode(String projectCode) { this.projectCode = projectCode; }
+    public void setId(UUID id) {this.id = id;}
 
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
+    public String getProjectCode() {return projectCode;}
 
-    public String getFeedback() { return feedback; }
-    public void setFeedback(String feedback) { this.feedback = feedback; }
+    public void setProjectCode(String projectCode) {this.projectCode = projectCode;}
 
-    public String getUpskillingPlan() { return upskillingPlan; }
-    public void setUpskillingPlan(String upskillingPlan) { this.upskillingPlan = upskillingPlan; }
+    public LocalDate getDate() {return date;}
 
-    public Decision getDecision() { return decision; }
-    public void setDecision(Decision decision) { this.decision = decision; }
+    public void setDate(LocalDate date) {this.date = date;}
 
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public String getFeedback() {return feedback;}
 
-    public Set<Question> getQuestions() { return questions; }
-    public void setQuestions(Set<Question> questions) { this.questions = questions; }
+    public void setFeedback(String feedback) {this.feedback = feedback;}
+
+    public String getUpskillingPlan() {return upskillingPlan;}
+
+    public void setUpskillingPlan(String upskillingPlan) {this.upskillingPlan = upskillingPlan;}
+
+    public Decision getDecision() {return decision;}
+
+    public void setDecision(Decision decision) {this.decision = decision;}
+
+    public Instant getCreatedAt() {return createdAt;}
+
+    public void setCreatedAt(Instant createdAt) {this.createdAt = createdAt;}
+
+    public Set<Question> getQuestions() {return questions;}
+
+    public void setQuestions(Set<Question> questions) {this.questions = questions;}
 }

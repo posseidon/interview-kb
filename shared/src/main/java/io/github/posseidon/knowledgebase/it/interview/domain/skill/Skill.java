@@ -1,6 +1,7 @@
 package io.github.posseidon.knowledgebase.it.interview.domain.skill;
 
 import jakarta.persistence.*;
+
 import java.time.Instant;
 import java.util.UUID;
 

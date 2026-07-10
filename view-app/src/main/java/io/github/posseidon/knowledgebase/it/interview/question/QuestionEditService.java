@@ -37,6 +37,11 @@ public class QuestionEditService {
         }
     }
 
+    private Question findQuestion(UUID id) {
+        return questionRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
     @Transactional
     public void addAnswer(UUID questionId, String content) {
         if (content == null || content.isBlank()) return;
@@ -53,10 +58,5 @@ public class QuestionEditService {
         String stripped = content.strip();
         answer.setContent(stripped);
         answer.setContentHash(ContentHash.sha256(stripped));
-    }
-
-    private Question findQuestion(UUID id) {
-        return questionRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 }

@@ -14,11 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -49,6 +45,22 @@ public class SkillController {
         return "skill/skill-group";
     }
 
+    private SkillNodeView toView(Skill skill) {
+        return new SkillNodeView(skill.getId(), skill.getName(), skill.getDescription(),
+                skill.getPath(), skill.getPositionCount(), 0,
+                skill.getNoviceCriteria(), skill.getIntermediateCriteria(),
+                skill.getAdvancedCriteria(), skill.getExpertCriteria());
+    }
+
+    private List<BreadcrumbItem> buildBreadcrumb(Skill skill) {
+        List<BreadcrumbItem> items = new ArrayList<>();
+        for (Skill s = skill; s != null; s = s.getParent()) {
+            items.add(new BreadcrumbItem(s.getId(), s.getName()));
+        }
+        Collections.reverse(items);
+        return items;
+    }
+
     // One batched COUNT ... GROUP BY instead of one query per skill.
     private Map<UUID, Long> childCounts(List<Skill> skills) {
         if (skills.isEmpty()) return Map.of();
@@ -72,26 +84,10 @@ public class SkillController {
         return text.substring(0, maxLength).strip() + "…";
     }
 
-    private List<BreadcrumbItem> buildBreadcrumb(Skill skill) {
-        List<BreadcrumbItem> items = new ArrayList<>();
-        for (Skill s = skill; s != null; s = s.getParent()) {
-            items.add(new BreadcrumbItem(s.getId(), s.getName()));
-        }
-        Collections.reverse(items);
-        return items;
-    }
-
-    private SkillNodeView toView(Skill skill) {
-        return new SkillNodeView(skill.getId(), skill.getName(), skill.getDescription(),
-                skill.getPath(), skill.getPositionCount(), 0,
-                skill.getNoviceCriteria(), skill.getIntermediateCriteria(),
-                skill.getAdvancedCriteria(), skill.getExpertCriteria());
-    }
-
     public record SkillNodeView(UUID id, String name, String description, String path,
-                                 Integer positionCount, long childCount,
-                                 String noviceCriteria, String intermediateCriteria,
-                                 String advancedCriteria, String expertCriteria) {
+                                Integer positionCount, long childCount,
+                                String noviceCriteria, String intermediateCriteria,
+                                String advancedCriteria, String expertCriteria) {
         public boolean isGroup() {
             return childCount > 0;
         }

@@ -8,32 +8,28 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, UUID> {
     Optional<Question> findByExternalId(String externalId);
 
-    List<Question> findAllByExternalIdIn(Collection<String> externalIds);
-
     Optional<Question> findByContentHash(String contentHash);
-    List<Question> findAllByContentHashIn(Collection<String> hashes);
 
     default Map<String, Question> indexByExternalId(Collection<String> externalIds) {
         return findAllByExternalIdIn(externalIds).stream()
                 .collect(Collectors.toMap(Question::getExternalId, q -> q));
     }
 
+    List<Question> findAllByExternalIdIn(Collection<String> externalIds);
+
     default Map<String, Question> indexByContentHash(Collection<String> contentHashValues) {
         return findAllByContentHashIn(contentHashValues).stream()
                 .collect(Collectors.toMap(Question::getContentHash, q -> q));
     }
+
+    List<Question> findAllByContentHashIn(Collection<String> hashes);
 
     long countByRequiresImpl(boolean requiresImpl);
 

@@ -2,63 +2,66 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/common :: head(${interview.projectCode})}"></head>
 <body>
-  <th:block th:replace="~{fragments/common :: nav}"></th:block>
-  <main class="hb-page hb-page--detail">
+<th:block th:replace="~{fragments/common :: nav}"></th:block>
+<main class="hb-page hb-page--detail">
     <a class="hb-back" href="/interviews"
        onclick="if(history.length>1){history.back();return false;}">&lt; Back</a>
 
     <div class="hb-iv-detail-header">
-      <h1 class="hb-detail-title" th:text="${interview.projectCode}">ACME Corp</h1>
-      <span th:class="'hb-iv-badge hb-iv-badge--' + ${interview.decisionCssClass}"
-            th:text="${interview.decisionLabel}">GOOD CANDIDATE</span>
-      <div class="hb-meta" th:text="'Interview date: ' + ${interview.dateDisplay}">Interview date: Jan 1, 2026</div>
+        <h1 class="hb-detail-title" th:text="${interview.projectCode}">ACME Corp</h1>
+        <span th:class="'hb-iv-badge hb-iv-badge--' + ${interview.decisionCssClass}"
+              th:text="${interview.decisionLabel}">GOOD CANDIDATE</span>
+        <div class="hb-meta" th:text="'Interview date: ' + ${interview.dateDisplay}">Interview date: Jan 1, 2026</div>
     </div>
 
     <!-- Feedback -->
     <th:block th:if="${not #strings.isEmpty(interview.feedbackHtml)}">
-      <div class="hb-iv-section-label">FEEDBACK</div>
-      <div class="hb-answer-rendered" th:utext="${interview.feedbackHtml}"></div>
+        <div class="hb-iv-section-label">FEEDBACK</div>
+        <div class="hb-answer-rendered" th:utext="${interview.feedbackHtml}"></div>
     </th:block>
 
     <!-- Upskilling plan -->
     <th:block th:if="${not #strings.isEmpty(interview.upskillingPlanHtml)}">
-      <div class="hb-iv-section-label">UPSKILLING PLAN</div>
-      <div class="hb-answer-rendered" th:utext="${interview.upskillingPlanHtml}"></div>
+        <div class="hb-iv-section-label">UPSKILLING PLAN</div>
+        <div class="hb-answer-rendered" th:utext="${interview.upskillingPlanHtml}"></div>
     </th:block>
 
     <!-- Linked questions grouped by skill -->
     <th:block th:if="${not #lists.isEmpty(interview.questionsBySkill)}">
-      <th:block th:each="group : ${interview.questionsBySkill}">
-        <div class="hb-iv-section-label" th:text="${group.skillName}">SKILL</div>
-        <div th:each="q : ${group.questions}">
-          <a class="hb-question-row"
-             th:href="@{/questions/{id}(id=${q.id})}">
-            <div class="hb-question-icon">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
-                   stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                <path d="M4 2L8 6L4 10"/>
-              </svg>
+        <th:block th:each="group : ${interview.questionsBySkill}">
+            <div class="hb-iv-section-label" th:text="${group.skillName}">SKILL</div>
+            <div th:each="q : ${group.questions}">
+                <a class="hb-question-row"
+                   th:href="@{/questions/{id}(id=${q.id})}">
+                    <div class="hb-question-icon">
+                        <svg fill="none" height="12" stroke="currentColor" stroke-linecap="round"
+                             stroke-width="1.5" viewBox="0 0 12 12" width="12">
+                            <path d="M4 2L8 6L4 10"/>
+                        </svg>
+                    </div>
+                    <div class="hb-question-body">
+                        <div class="hb-question-title" th:text="${q.content}">Question text</div>
+                    </div>
+                </a>
             </div>
-            <div class="hb-question-body">
-              <div class="hb-question-title" th:text="${q.content}">Question text</div>
-            </div>
-          </a>
-        </div>
-      </th:block>
+        </th:block>
     </th:block>
     <p class="hb-empty" th:if="${#lists.isEmpty(interview.questionsBySkill)}">No questions linked.</p>
-  </main>
+</main>
 
-  <script>
+<script>
     document.querySelectorAll('.hb-answer-rendered pre').forEach(function (pre) {
-      pre.title = 'Tap to copy';
-      pre.addEventListener('click', function () {
-        var code = pre.querySelector('code') ? pre.querySelector('code').textContent : pre.textContent;
-        if (navigator.clipboard) navigator.clipboard.writeText(code).catch(function () {});
-        pre.classList.add('hb-code--flash');
-        setTimeout(function () { pre.classList.remove('hb-code--flash'); }, 500);
-      });
+        pre.title = 'Tap to copy';
+        pre.addEventListener('click', function () {
+            var code = pre.querySelector('code') ? pre.querySelector('code').textContent : pre.textContent;
+            if (navigator.clipboard) navigator.clipboard.writeText(code).catch(function () {
+            });
+            pre.classList.add('hb-code--flash');
+            setTimeout(function () {
+                pre.classList.remove('hb-code--flash');
+            }, 500);
+        });
     });
-  </script>
+</script>
 </body>
 </html>

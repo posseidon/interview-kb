@@ -3,6 +3,7 @@ package io.github.posseidon.knowledgebase.it.interview.domain.question;
 import io.github.posseidon.knowledgebase.it.interview.domain.skill.Skill;
 import io.github.posseidon.knowledgebase.it.interview.domain.skill.SkillLevel;
 import jakarta.persistence.*;
+
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;

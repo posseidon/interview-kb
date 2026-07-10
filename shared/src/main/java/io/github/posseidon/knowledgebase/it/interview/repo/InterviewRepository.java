@@ -11,5 +11,6 @@ import java.util.UUID;
 @Repository
 public interface InterviewRepository extends JpaRepository<Interview, UUID> {
     List<Interview> findAllByOrderByDateAsc();
+
     Optional<Interview> findByProjectCode(String projectCode);
 }

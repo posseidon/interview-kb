@@ -70,7 +70,7 @@ public class SkillQuestionMcpTool {
     }
 
     public record SkillQuestionsResult(boolean found, UUID skillId, String skillName, String level,
-                                        List<QuestionView> questions) {
+                                       List<QuestionView> questions) {
         static SkillQuestionsResult notFound(String skillName) {
             return new SkillQuestionsResult(false, null, skillName, null, List.of());
         }

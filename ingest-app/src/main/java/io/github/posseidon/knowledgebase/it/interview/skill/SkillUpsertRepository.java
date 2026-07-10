@@ -5,7 +5,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
-/** Upserts one {@link SkillRow} by its path, matching the existing skill tree instead of duplicating it. */
+/**
+ * Upserts one {@link SkillRow} by its path, matching the existing skill tree instead of duplicating it.
+ */
 @Repository
 class SkillUpsertRepository {
 

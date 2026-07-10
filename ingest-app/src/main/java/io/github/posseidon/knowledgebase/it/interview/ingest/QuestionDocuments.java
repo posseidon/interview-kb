@@ -6,7 +6,9 @@ import org.springframework.ai.document.Document;
 
 import java.util.Map;
 
-/** The single Spring AI {@link Document} shape mirrored into {@code vector_store} for a question. */
+/**
+ * The single Spring AI {@link Document} shape mirrored into {@code vector_store} for a question.
+ */
 public final class QuestionDocuments {
 
     private QuestionDocuments() {}

@@ -2,34 +2,34 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/common :: head('Interviews')}"></head>
 <body>
-  <th:block th:replace="~{fragments/common :: nav}"></th:block>
-  <main class="hb-page hb-page--interviews">
+<th:block th:replace="~{fragments/common :: nav}"></th:block>
+<main class="hb-page hb-page--interviews">
     <h1 class="hb-title">INTERVIEWS</h1>
 
     <p class="hb-empty" th:if="${#lists.isEmpty(interviews)}">No interviews recorded yet.</p>
 
     <div class="hb-iv-grid" th:if="${not #lists.isEmpty(interviews)}">
-      <a th:each="iv : ${interviews}"
-         th:href="@{/interviews/{id}(id=${iv.id})}"
-         th:class="'hb-iv-tile hb-iv-tile--' + ${iv.decisionCssClass}">
+        <a th:class="'hb-iv-tile hb-iv-tile--' + ${iv.decisionCssClass}"
+           th:each="iv : ${interviews}"
+           th:href="@{/interviews/{id}(id=${iv.id})}">
 
-        <div class="hb-iv-tile-header">
-          <span class="hb-iv-project" th:text="${iv.projectCode}">ACME Corp</span>
-          <span class="hb-iv-date" th:text="${iv.dateDisplay}">Jan 1, 2026</span>
-        </div>
+            <div class="hb-iv-tile-header">
+                <span class="hb-iv-project" th:text="${iv.projectCode}">ACME Corp</span>
+                <span class="hb-iv-date" th:text="${iv.dateDisplay}">Jan 1, 2026</span>
+            </div>
 
-        <span th:class="'hb-iv-badge hb-iv-badge--' + ${iv.decisionCssClass}"
-              th:text="${iv.decisionLabel}">GOOD CANDIDATE</span>
+            <span th:class="'hb-iv-badge hb-iv-badge--' + ${iv.decisionCssClass}"
+                  th:text="${iv.decisionLabel}">GOOD CANDIDATE</span>
 
-        <p class="hb-iv-snippet" th:if="${not #strings.isEmpty(iv.feedbackSnippet)}"
-           th:text="${iv.feedbackSnippet}">Feedback preview…</p>
+            <p class="hb-iv-snippet" th:if="${not #strings.isEmpty(iv.feedbackSnippet)}"
+               th:text="${iv.feedbackSnippet}">Feedback preview…</p>
 
-        <div class="hb-iv-meta"
-             th:text="${iv.questionCount} + (${iv.questionCount == 1} ? ' question linked' : ' questions linked')">
-          0 questions linked
-        </div>
-      </a>
+            <div class="hb-iv-meta"
+                 th:text="${iv.questionCount} + (${iv.questionCount == 1} ? ' question linked' : ' questions linked')">
+                0 questions linked
+            </div>
+        </a>
     </div>
-  </main>
+</main>
 </body>
 </html>

@@ -6,18 +6,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
 public interface AnswerRepository extends JpaRepository<Answer, UUID> {
-
-    @Query("SELECT a FROM Answer a WHERE a.question.id IN :ids")
-    List<Answer> findByQuestionIds(@Param("ids") Collection<UUID> ids);
 
     default Map<UUID, Set<String>> groupContentHashesByQuestionId(Collection<UUID> questionIds) {
         return findByQuestionIds(questionIds).stream()
@@ -25,4 +18,7 @@ public interface AnswerRepository extends JpaRepository<Answer, UUID> {
                         a -> a.getQuestion().getId(),
                         Collectors.mapping(Answer::getContentHash, Collectors.toSet())));
     }
+
+    @Query("SELECT a FROM Answer a WHERE a.question.id IN :ids")
+    List<Answer> findByQuestionIds(@Param("ids") Collection<UUID> ids);
 }

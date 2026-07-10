@@ -88,6 +88,17 @@ public class HandbookViewController {
         return "question/search";
     }
 
+    private List<SkillResultGroup> groupBySkill(List<QuestionView> results) {
+        Map<String, List<QuestionView>> bySkill = new LinkedHashMap<>();
+        for (QuestionView q : results) {
+            String primarySkill = q.skills().isEmpty() ? "Uncategorized" : q.skills().get(0).name();
+            bySkill.computeIfAbsent(primarySkill, k -> new ArrayList<>()).add(q);
+        }
+        return bySkill.entrySet().stream()
+                .map(e -> new SkillResultGroup(e.getKey(), e.getValue().size(), e.getValue()))
+                .collect(Collectors.toList());
+    }
+
     @Transactional(readOnly = true)
     @GetMapping("/questions/{id}")
     public String detail(@PathVariable UUID id, Model model) {
@@ -127,17 +138,7 @@ public class HandbookViewController {
         return "redirect:/questions/" + id;
     }
 
-    private List<SkillResultGroup> groupBySkill(List<QuestionView> results) {
-        Map<String, List<QuestionView>> bySkill = new LinkedHashMap<>();
-        for (QuestionView q : results) {
-            String primarySkill = q.skills().isEmpty() ? "Uncategorized" : q.skills().get(0).name();
-            bySkill.computeIfAbsent(primarySkill, k -> new ArrayList<>()).add(q);
-        }
-        return bySkill.entrySet().stream()
-                .map(e -> new SkillResultGroup(e.getKey(), e.getValue().size(), e.getValue()))
-                .collect(Collectors.toList());
-    }
-
     public record SkillResultGroup(String skillName, int count, List<QuestionView> items) {}
+
     public record AnswerDetail(UUID id, String source, String rawContent, String htmlContent) {}
 }

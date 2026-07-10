@@ -56,5 +56,6 @@ public class ApiController {
     }
 
     public record UnansweredQuestion(UUID id, String content, List<String> skills) {}
+
     public record AddAnswerRequest(String content, String source) {}
 }

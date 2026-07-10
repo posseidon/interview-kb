@@ -1,13 +1,16 @@
 # PLAN.md — Build the project skeleton
 
-Goal: scaffold a **compiling, runnable Spring Boot + Spring AI skeleton** for the interview knowledge base. Work top to bottom; check items off as you go. Read `CLAUDE.md` first. Deep business logic may be left as `// TODO` where marked — but the project must **compile, start, pass `mvn verify`, and report `/actuator/health` UP**.
+Goal: scaffold a **compiling, runnable Spring Boot + Spring AI skeleton** for the interview knowledge base. Work top to
+bottom; check items off as you go. Read `CLAUDE.md` first. Deep business logic may be left as `// TODO` where marked —
+but the project must **compile, start, pass `mvn verify`, and report `/actuator/health` UP**.
 
 ---
 
 ## Phase 0 — Project + infrastructure
 
 - [ ] Generate a Spring Boot 3.4+ project, group `com.interviewkb`, Java 21, packaging `jar`.
-- [ ] Create `pom.xml` with the Spring AI BOM and dependencies below. Pin `spring-ai.version` to the current `1.1.x` from Maven Central.
+- [ ] Create `pom.xml` with the Spring AI BOM and dependencies below. Pin `spring-ai.version` to the current `1.1.x`
+  from Maven Central.
 
 ```xml
 <properties>
@@ -46,8 +49,9 @@ Goal: scaffold a **compiling, runnable Spring Boot + Spring AI skeleton** for th
 ```
 
 - [ ] Create `docker-compose.yml` with two services:
-  - `db`: image `pgvector/pgvector:pg16`, env `POSTGRES_DB=interview_kb`, `POSTGRES_USER=postgres`, `POSTGRES_PASSWORD=postgres`, port `5432:5432`, a named volume.
-  - `ollama`: image `ollama/ollama`, port `11434:11434`, a named volume for models.
+    - `db`: image `pgvector/pgvector:pg16`, env `POSTGRES_DB=interview_kb`, `POSTGRES_USER=postgres`,
+      `POSTGRES_PASSWORD=postgres`, port `5432:5432`, a named volume.
+    - `ollama`: image `ollama/ollama`, port `11434:11434`, a named volume for models.
 - [ ] Create `src/main/resources/application.yml`:
 
 ```yaml
@@ -93,7 +97,8 @@ management:
 
 ## Phase 1 — Database schema (Flyway)
 
-- [ ] Create `src/main/resources/db/migration/V1__init.sql` exactly as below (Flyway owns the whole schema, including Spring AI's `vector_store`).
+- [ ] Create `src/main/resources/db/migration/V1__init.sql` exactly as below (Flyway owns the whole schema, including
+  Spring AI's `vector_store`).
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -178,26 +183,34 @@ CREATE INDEX idx_qtag_tag ON question_tag(tag_id);
 ## Phase 2 — Domain entities + repositories
 
 - [ ] In `domain/`, create JPA entities (classes, `UUID` ids, `@GeneratedValue`):
-  - `Topic` (slug, name, description, optional self-ref `parent`).
-  - `Question` (externalId, content, contentHash, requiresImpl, language, frequency; `@ManyToMany` to `Topic` via `question_topic`; `@ManyToMany` to `Tag` via `question_tag`; `@OneToMany` to `Answer`). **No embedding field.**
-  - `Answer` (`@ManyToOne` question, content, contentHash, source).
-  - `Tag` (name).
-  - `MergeLog` (intoQuestionId, `source_snapshot` as JSONB string/`@JdbcTypeCode(SqlTypes.JSON)`, similarity, note, mergedAt).
-- [ ] In `repo/`, create Spring Data repositories: `TopicRepository` (findBySlug), `QuestionRepository` (findByExternalId, findByContentHash, paginated filters by topic slug + tag name + keyword), `AnswerRepository`, `TagRepository` (findByName), `MergeLogRepository`.
+    - `Topic` (slug, name, description, optional self-ref `parent`).
+    - `Question` (externalId, content, contentHash, requiresImpl, language, frequency; `@ManyToMany` to `Topic` via
+      `question_topic`; `@ManyToMany` to `Tag` via `question_tag`; `@OneToMany` to `Answer`). **No embedding field.**
+    - `Answer` (`@ManyToOne` question, content, contentHash, source).
+    - `Tag` (name).
+    - `MergeLog` (intoQuestionId, `source_snapshot` as JSONB string/`@JdbcTypeCode(SqlTypes.JSON)`, similarity, note,
+      mergedAt).
+- [ ] In `repo/`, create Spring Data repositories: `TopicRepository` (findBySlug), `QuestionRepository` (
+  findByExternalId, findByContentHash, paginated filters by topic slug + tag name + keyword), `AnswerRepository`,
+  `TagRepository` (findByName), `MergeLogRepository`.
 
-**Done when:** `mvn test` passes a smoke test that saves and reads a `Question` with topics, tags, and answers, and `ddl-auto: validate` agrees with the Flyway schema.
+**Done when:** `mvn test` passes a smoke test that saves and reads a `Question` with topics, tags, and answers, and
+`ddl-auto: validate` agrees with the Flyway schema.
 
 ---
 
 ## Phase 3 — DTOs + ingestion
 
 - [ ] In `dto/`, create ingestion records matching the JSON contract:
-  - `IngestRequest(List<TopicDto> topics, List<QuestionDto> questions)`
-  - `TopicDto(String slug, String name, String description)`
-  - `QuestionDto(String externalId, String content, boolean requiresImpl, String language, List<String> topics, List<String> tags, List<AnswerDto> answers)`
-  - `AnswerDto(String source, String content)`
-  - Response records for listing/ask (e.g. `QuestionView`, `AskResponse(String answer, List<QuestionView> sources)`).
-- [ ] In `ingest/IngestionService` (`@Transactional`): a `ContentHash` helper (SHA-256 of normalized text); upsert topics by slug and tags by name (auto-create); upsert questions by `externalId` then `contentHash`; skip answers whose `contentHash` already exists on the question. After saving each question, mirror it into the vector store:
+    - `IngestRequest(List<TopicDto> topics, List<QuestionDto> questions)`
+    - `TopicDto(String slug, String name, String description)`
+    -
+  `QuestionDto(String externalId, String content, boolean requiresImpl, String language, List<String> topics, List<String> tags, List<AnswerDto> answers)`
+    - `AnswerDto(String source, String content)`
+    - Response records for listing/ask (e.g. `QuestionView`, `AskResponse(String answer, List<QuestionView> sources)`).
+- [ ] In `ingest/IngestionService` (`@Transactional`): a `ContentHash` helper (SHA-256 of normalized text); upsert
+  topics by slug and tags by name (auto-create); upsert questions by `externalId` then `contentHash`; skip answers whose
+  `contentHash` already exists on the question. After saving each question, mirror it into the vector store:
   ```java
   vectorStore.add(List.of(Document.builder()
       .id(question.getId().toString())
@@ -234,11 +247,11 @@ CREATE INDEX idx_qtag_tag ON question_tag(tag_id);
 ## Phase 4 — Controllers + structured listing
 
 - [ ] In `web/`, create REST controllers (thin; delegate to services):
-  - `POST /ingest` → `IngestionService`, returns created/updated counts.
-  - `GET /topics`, `GET /tags`.
-  - `GET /questions?topic=&tag=&q=&page=&size=&sort=` → paginated listing with answers.
-  - `GET /questions/{id}` → full question view.
-  - `GET /topics/{slug}/questions?sort=frequency,desc`.
+    - `POST /ingest` → `IngestionService`, returns created/updated counts.
+    - `GET /topics`, `GET /tags`.
+    - `GET /questions?topic=&tag=&q=&page=&size=&sort=` → paginated listing with answers.
+    - `GET /questions/{id}` → full question view.
+    - `GET /topics/{slug}/questions?sort=frequency,desc`.
 - [ ] Implement the listing queries in `QuestionRepository` / a `QuestionQueryService`.
 
 **Done when:** listing by topic + tag + keyword returns expected rows with their answers.
@@ -249,34 +262,44 @@ CREATE INDEX idx_qtag_tag ON question_tag(tag_id);
 
 - [ ] In `config/`, expose a `ChatClient` bean from the injected `ChatClient.Builder`.
 - [ ] In `ask/AskService`, implement the pipeline shell:
-  1. (Optional, `// TODO`) extract `{topics, tags, semanticQuery}` via a `ChatClient` JSON call.
-  2. `vectorStore.similaritySearch(SearchRequest.builder().query(semanticQuery).topK(8).similarityThreshold(0.4).build())`.
-  3. Map `Document::getId` → question UUIDs; load entities via `QuestionRepository`; constrain by topics/tags relationally; order by similarity (and by `frequency` for "most common" intent).
-  4. (`// TODO`) call `ChatClient` with the question + retrieved Q&A as grounding context.
-  5. Return `AskResponse(answer, sources)`.
+    1. (Optional, `// TODO`) extract `{topics, tags, semanticQuery}` via a `ChatClient` JSON call.
+    2.
+  `vectorStore.similaritySearch(SearchRequest.builder().query(semanticQuery).topK(8).similarityThreshold(0.4).build())`.
+    3. Map `Document::getId` → question UUIDs; load entities via `QuestionRepository`; constrain by topics/tags
+       relationally; order by similarity (and by `frequency` for "most common" intent).
+    4. (`// TODO`) call `ChatClient` with the question + retrieved Q&A as grounding context.
+    5. Return `AskResponse(answer, sources)`.
 - [ ] `POST /ask` controller.
 
-**Done when:** `/ask` returns the retrieved source questions for a query (LLM synthesis step may stay `// TODO`), with no startup or wiring errors.
+**Done when:** `/ask` returns the retrieved source questions for a query (LLM synthesis step may stay `// TODO`), with
+no startup or wiring errors.
 
 ---
 
 ## Phase 6 — Merge (human-in-the-loop) — wiring + stubs
 
 - [ ] In `merge/MergeService`:
-  - `findCandidates(threshold)`: for each question, `similaritySearch` on its own text (small `topK`, high threshold), excluding itself → candidate pairs with scores.
-  - `merge(targetId, sourceId)` (`@Transactional`): snapshot source into `merge_log`; re-point source answers to target; union topics + tags onto target; `target.frequency += source.frequency`; `vectorStore.delete(sourceId)` and re-add target document with refreshed metadata; hard-delete the source question.
+    - `findCandidates(threshold)`: for each question, `similaritySearch` on its own text (small `topK`, high threshold),
+      excluding itself → candidate pairs with scores.
+    - `merge(targetId, sourceId)` (`@Transactional`): snapshot source into `merge_log`; re-point source answers to
+      target; union topics + tags onto target; `target.frequency += source.frequency`; `vectorStore.delete(sourceId)`
+      and re-add target document with refreshed metadata; hard-delete the source question.
 - [ ] `GET /merge/candidates?threshold=`, `POST /merge` controllers.
 
-**Done when:** approving a merge moves answers to the target, unions topics/tags, increments `frequency`, writes a `merge_log` row, deletes the source row, and removes the source's vector document — all atomically.
+**Done when:** approving a merge moves answers to the target, unions topics/tags, increments `frequency`, writes a
+`merge_log` row, deletes the source row, and removes the source's vector document — all atomically.
 
 ---
 
 ## Phase 7 — Tests + verification
 
-- [ ] Add a Testcontainers integration test: `pgvector/pgvector:pg16` via `@ServiceConnection`; stub or mock `EmbeddingModel`/`ChatModel` so tests don't require a running Ollama. Cover: Flyway boots, ingestion happy path writes both stores, listing returns rows.
+- [ ] Add a Testcontainers integration test: `pgvector/pgvector:pg16` via `@ServiceConnection`; stub or mock
+  `EmbeddingModel`/`ChatModel` so tests don't require a running Ollama. Cover: Flyway boots, ingestion happy path writes
+  both stores, listing returns rows.
 - [ ] Ensure `mvn verify` is green and `/actuator/health` is UP when run against Docker.
 
-**Done when:** the skeleton compiles, starts, passes `mvn verify`, and exposes all endpoints (deep RAG/merge logic may remain `// TODO`).
+**Done when:** the skeleton compiles, starts, passes `mvn verify`, and exposes all endpoints (deep RAG/merge logic may
+remain `// TODO`).
 
 ---
 
