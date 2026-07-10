@@ -25,6 +25,7 @@
     <div class="hb-meta">
       <th:block th:if="${not #lists.isEmpty(question.skills)}">Skill: <span th:text="${question.skills[0].name}">kafka</span> &middot; </th:block>
       Added <span th:text="${createdAtDisplay}">Apr 2, 2026</span>
+      <th:block th:if="${question.externalId != null}"> &middot; ID: <span th:text="${question.externalId}">ext-123</span></th:block>
     </div>
 
     <!-- Answers -->

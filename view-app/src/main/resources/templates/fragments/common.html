@@ -43,6 +43,15 @@
       </div>
       <span class="hb-nav-label">Handbook</span>
     </div>
+    <form class="hb-nav-search" method="get" th:action="@{/search}">
+      <svg class="hb-nav-search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none"
+           stroke="currentColor" stroke-width="1.5">
+        <circle cx="7" cy="7" r="4.5"></circle>
+        <line x1="10.6" y1="10.6" x2="14" y2="14"></line>
+      </svg>
+      <input type="search" name="q" class="hb-nav-search-input"
+             placeholder="Search questions…" autocomplete="off" th:value="${query}" />
+    </form>
     <div class="hb-nav-actions">
       <a class="hb-nav-icon-link" th:href="@{/skills}"
          aria-label="Browse skills" title="Browse skills">
@@ -62,13 +71,6 @@
           <path d="M1.5 13c0-2.2 1.6-3.8 4-3.8s4 1.6 4 3.8"/>
           <circle cx="11.5" cy="6" r="1.6"/>
           <path d="M8.8 13c.2-1.8 1.4-3 2.7-3s2.4 1 2.6 2.6"/>
-        </svg>
-      </a>
-      <a class="hb-nav-btn" th:href="@{/}" aria-label="Search">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-             stroke="currentColor" stroke-width="1.5">
-          <circle cx="7" cy="7" r="4.5"></circle>
-          <line x1="10.6" y1="10.6" x2="14" y2="14"></line>
         </svg>
       </a>
     </div>

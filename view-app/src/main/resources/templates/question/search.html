@@ -9,7 +9,10 @@
       <th:block th:if="${hasMatches}">
         <div class="hb-search-toolbar">
           <div class="hb-search-header">
-            <span class="hb-search-query" th:text="'“' + ${query} + '”'">&#8220;query&#8221;</span>
+            <form class="hb-search-header-form" method="get" th:action="@{/search}">
+              <input type="search" name="q" class="hb-search-query-input"
+                     th:value="${query}" placeholder="Search questions…" autocomplete="off" />
+            </form>
             <span class="hb-search-count"
                   th:text="${totalCount} + (${totalCount == 1} ? ' result' : ' results')">0 results</span>
           </div>
