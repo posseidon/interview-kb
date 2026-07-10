@@ -5,18 +5,19 @@
 <th:block th:replace="~{fragments/common :: nav}"></th:block>
 
 <main class="hb-page hb-page--home">
-    <h1 class="hb-title">THE QUESTIONS BANK</h1>
-    <div class="hb-stat"
-         th:text="${totalQuestions} + (${totalQuestions == 1} ? ' QUESTION INDEXED' : ' QUESTIONS INDEXED')">
-        10 QUESTIONS INDEXED
-    </div>
+  <h1 class="hb-title">THE QUESTIONS BANK</h1>
+  <div class="hb-stat"
+       th:text="${totalQuestions} + (${totalQuestions == 1} ? ' QUESTION INDEXED' : ' QUESTIONS INDEXED')">
+    10 QUESTIONS INDEXED
+  </div>
 
-    <form class="hb-search-form" method="get" th:action="@{/search}">
-        <input autocomplete="off" class="hb-search-input hb-search-input--ask" name="q"
-               placeholder="Search or Ask..." type="text"/>
-    </form>
-    <p class="hb-ask-hint">Press Enter to ask. Answers are synthesized from indexed questions, each marked coding or
-        theoretical.</p>
+  <form class="hb-search-form" method="get" th:action="@{/search}">
+    <input autocomplete="off" class="hb-search-input hb-search-input--ask" name="q"
+           placeholder="Search or Ask..." type="text"/>
+  </form>
+  <p class="hb-ask-hint">Press Enter to ask. Answers are synthesized from indexed questions, each
+    marked coding or
+    theoretical.</p>
 
 </main>
 </body>

@@ -1,6 +1,7 @@
 # Interview Knowledge Base
 
-A single-user service for storing, searching, and browsing IT interview questions and answers, with semantic search and
+A single-user service for storing, searching, and browsing IT interview questions and answers, with
+semantic search and
 human-in-the-loop merging backed by a local LLM (RAG via Ollama) and PostgreSQL with pgvector.
 
 The project is a Maven multi-module build split into three modules:
@@ -18,11 +19,15 @@ interview-kb/
 
 Not a runnable app — a library jar consumed by both `ingest-app` and `view-app`.
 
-- JPA entities (`Question`, `Answer`, `Skill`, `Interview`, `Decision`, `MergeLog`), organized under `domain/<feature>`.
-- DTOs, organized under `dto/<feature>` (e.g. `dto/ingest/request`, `dto/ingest/response`, `dto/question`,
+- JPA entities (`Question`, `Answer`, `Skill`, `Interview`, `Decision`, `MergeLog`), organized under
+  `domain/<feature>`.
+- DTOs, organized under `dto/<feature>` (e.g. `dto/ingest/request`, `dto/ingest/response`,
+  `dto/question`,
   `dto/interview`, `dto/ask`).
-- Spring Data repositories (`repo/`) and shared utilities (`util/`, e.g. `ContentHash`, `Markdown`, `QuestionMapper`).
-- Flyway migrations (`db/migration`) — **owned by this module's schema, applied by `ingest-app`** (see below).
+- Spring Data repositories (`repo/`) and shared utilities (`util/`, e.g. `ContentHash`, `Markdown`,
+  `QuestionMapper`).
+- Flyway migrations (`db/migration`) — **owned by this module's schema, applied by `ingest-app`** (
+  see below).
 
 ### `ingest-app` — port `8081`
 
@@ -32,23 +37,28 @@ The write/AI side: everything that talks to Ollama or touches the vector store.
 - **Skill import** — `POST /skills/import` (upload `skills.xlsx` to (re)build the skill catalog).
 - **Ask (RAG)** — `POST /ask` — semantic search over the vector store.
 - **Interview ingestion** — `POST /interviews`, `POST /interviews/questions`.
-- **Merge** — `GET /merge/candidates`, `POST /merge` — human-in-the-loop duplicate detection/merging.
+- **Merge** — `GET /merge/candidates`, `POST /merge` — human-in-the-loop duplicate
+  detection/merging.
 - Owns the schema: `spring.flyway.enabled=true` here; `view-app` only validates against it.
 
 ### `view-app` — port `8080`
 
 The read/browse side: the Thymeleaf UI plus a small JSON API, no AI dependency.
 
-- **Handbook UI** — home, search/ask results, question detail with markdown rendering and inline answer editing.
+- **Handbook UI** — home, search/ask results, question detail with markdown rendering and inline
+  answer editing.
 - **Skills UI** — browsable skill tree with level pickers (`/skills`, `/skills/{id}`).
 - **Basket** — collect skills at a level and check out (`/basket/*`).
 - **Interviews UI** — list and detail views for recorded interviews.
-- **JSON API** — `GET /questions`, `GET /questions/{id}`, `GET /skills/{id}/questions` for programmatic access to the
+- **JSON API** — `GET /questions`, `GET /questions/{id}`, `GET /skills/{id}/questions` for
+  programmatic access to the
   same data.
-- `spring.flyway.enabled=false` — this module never migrates the schema, only validates its entities against it (
+- `spring.flyway.enabled=false` — this module never migrates the schema, only validates its entities
+  against it (
   `ddl-auto=validate`).
 
-Both apps connect to the same Supabase Postgres instance and share the `shared` module's entities/repositories, so data
+Both apps connect to the same Supabase Postgres instance and share the `shared` module's
+entities/repositories, so data
 written by `ingest-app` is immediately visible in `view-app`.
 
 ---
@@ -57,7 +67,8 @@ written by `ingest-app` is immediately visible in `view-app`.
 
 - Java 21 · Spring Boot 3.4 · Spring AI 1.1 (`ingest-app` only)
 - PostgreSQL 16 + pgvector via **Supabase** (cloud) — shared by both apps
-- Ollama (local) — `nomic-embed-text` for embeddings, `llama3.1:8b` for chat — used by `ingest-app` only
+- Ollama (local) — `nomic-embed-text` for embeddings, `llama3.1:8b` for chat — used by `ingest-app`
+  only
 - Flyway for schema migrations (applied by `ingest-app`)
 - Thymeleaf for server-rendered views (`view-app` only)
 
@@ -85,7 +96,8 @@ docker version
 
 ### Step 1 — Configure the database
 
-Both `ingest-app/src/main/resources/application.yml` and `view-app/src/main/resources/application.yml` read the same
+Both `ingest-app/src/main/resources/application.yml` and
+`view-app/src/main/resources/application.yml` read the same
 environment variables:
 
 ```yaml
@@ -96,8 +108,10 @@ spring:
     password: ${DB_PASSWORD}
 ```
 
-Set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` in your shell (or override the defaults directly in the YAML). The host,
-username, and password are available in your Supabase project under **Settings → Database → Connection string**.
+Set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` in your shell (or override the defaults directly in
+the YAML). The host,
+username, and password are available in your Supabase project under **Settings → Database →
+Connection string**.
 
 ### Step 2 — Start Ollama
 
@@ -105,10 +119,12 @@ username, and password are available in your Supabase project under **Settings �
 docker compose up -d
 ```
 
-This starts the Ollama container. The database runs on Supabase — no local PostgreSQL container is needed. Only
+This starts the Ollama container. The database runs on Supabase — no local PostgreSQL container is
+needed. Only
 `ingest-app` talks to Ollama; `view-app` does not need it running.
 
-> **Windows note:** Run this command in PowerShell or Windows Terminal. Docker Desktop must be running first.
+> **Windows note:** Run this command in PowerShell or Windows Terminal. Docker Desktop must be
+> running first.
 
 ### Step 3 — Pull the embedding model (first time only)
 
@@ -116,7 +132,8 @@ This starts the Ollama container. The database runs on Supabase — no local Pos
 ollama pull nomic-embed-text
 ```
 
-The chat model (`llama3.1:8b`) is pulled automatically on first use. Pull it explicitly if you prefer:
+The chat model (`llama3.1:8b`) is pulled automatically on first use. Pull it explicitly if you
+prefer:
 
 ```bash
 ollama pull llama3.1:8b
@@ -135,8 +152,10 @@ mvn clean install
 
 ### Step 5 — Run the apps
 
-The two apps are independent Spring Boot processes and can be started separately, in either order. **Start `ingest-app`
-first at least once** — it owns the Flyway migrations, so the schema needs to exist before `view-app` (which only
+The two apps are independent Spring Boot processes and can be started separately, in either order. *
+*Start `ingest-app`
+first at least once** — it owns the Flyway migrations, so the schema needs to exist before
+`view-app` (which only
 validates it) connects.
 
 **Ingestion app — port 8081**
@@ -175,7 +194,8 @@ Expected response from each:
 {"status": "UP"}
 ```
 
-`ingest-app`'s health check reports both `db` (Supabase) and Ollama as `UP`. `view-app`'s reports only `db`, since it
+`ingest-app`'s health check reports both `db` (Supabase) and Ollama as `UP`. `view-app`'s reports
+only `db`, since it
 has no AI dependency. If Ollama is still pulling a model, wait a moment and retry.
 
 Once both are up, open `http://localhost:8080/` in a browser for the handbook UI.
@@ -188,9 +208,12 @@ Once both are up, open `http://localhost:8080/` in a browser for the handbook UI
 
 #### `POST /ingest`
 
-Upserts questions, linking each question to existing skills by name. Idempotent — safe to call multiple times with the
-same data. Skills are not created here — they come from the skill catalog (`skills.xlsx` import via `/skills/import`); a
-name with no match is logged and the question is simply not linked to a skill for it. After each question is saved it is
+Upserts questions, linking each question to existing skills by name. Idempotent — safe to call
+multiple times with the
+same data. Skills are not created here — they come from the skill catalog (`skills.xlsx` import via
+`/skills/import`); a
+name with no match is logged and the question is simply not linked to a skill for it. After each
+question is saved it is
 mirrored into the vector store.
 
 ```bash
@@ -227,11 +250,13 @@ curl -X POST http://localhost:8081/ingest \
 
 #### `POST /ingest/questions`
 
-AI-assisted ingestion: takes raw markdown-formatted questions and lets the LLM structure and answer them before saving.
+AI-assisted ingestion: takes raw markdown-formatted questions and lets the LLM structure and answer
+them before saving.
 
 #### `POST /skills/import`
 
-Uploads a `skills.xlsx` workbook to (re)build the skill catalog used to resolve `skills: [...]` names during ingestion.
+Uploads a `skills.xlsx` workbook to (re)build the skill catalog used to resolve `skills: [...]`
+names during ingestion.
 
 ```bash
 curl -X POST http://localhost:8081/skills/import -F "file=@skills.xlsx"
@@ -245,7 +270,8 @@ curl -X POST http://localhost:8081/skills/import -F "file=@skills.xlsx"
 
 #### `POST /ask`
 
-Performs semantic search over the vector store, retrieves the most relevant questions and answers, and returns them as
+Performs semantic search over the vector store, retrieves the most relevant questions and answers,
+and returns them as
 grounding sources.
 
 ```bash
@@ -282,11 +308,13 @@ curl -X POST http://localhost:8081/ask \
 
 #### `POST /interviews`, `POST /interviews/questions`
 
-Ingests a recorded interview (project code, decision, questions asked) for later browsing in `view-app`.
+Ingests a recorded interview (project code, decision, questions asked) for later browsing in
+`view-app`.
 
 #### `GET /merge/candidates`
 
-Finds pairs of questions that are semantically similar above the given threshold. Use this to discover duplicate
+Finds pairs of questions that are semantically similar above the given threshold. Use this to
+discover duplicate
 questions before merging.
 
 | Param       | Type  | Description                                           |
@@ -334,8 +362,10 @@ curl -X POST http://localhost:8081/merge \
 
 ### `view-app` — `http://localhost:8080`
 
-Most of `view-app` is server-rendered HTML (home `/`, search `/search`, skills `/skills`, `/skills/{id}`, question
-detail `/questions/{id}`, basket `/basket`, interviews `/interviews`). The JSON endpoints below are the same read paths
+Most of `view-app` is server-rendered HTML (home `/`, search `/search`, skills `/skills`,
+`/skills/{id}`, question
+detail `/questions/{id}`, basket `/basket`, interviews `/interviews`). The JSON endpoints below are
+the same read paths
 used programmatically.
 
 #### `GET /skills/{id}/questions`
@@ -463,7 +493,8 @@ Returned by `/questions`, `/questions/{id}`, `/skills/{id}/questions`, and `/ask
 
 ## Infrastructure
 
-`docker-compose.yml` runs Ollama only. The database is managed by Supabase — no local PostgreSQL container.
+`docker-compose.yml` runs Ollama only. The database is managed by Supabase — no local PostgreSQL
+container.
 
 ```bash
 # Start Ollama

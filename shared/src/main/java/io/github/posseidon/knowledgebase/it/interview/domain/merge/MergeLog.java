@@ -1,86 +1,91 @@
 package io.github.posseidon.knowledgebase.it.interview.domain.merge;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "merge_log")
 public class MergeLog {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @Column(name = "into_question_id")
-    private UUID intoQuestionId;
+  @Column(name = "into_question_id")
+  private UUID intoQuestionId;
 
-    @Column(name = "source_snapshot", columnDefinition = "jsonb", nullable = false)
-    @JdbcTypeCode(SqlTypes.JSON)
-    private String sourceSnapshot;
+  @Column(name = "source_snapshot", columnDefinition = "jsonb", nullable = false)
+  @JdbcTypeCode(SqlTypes.JSON)
+  private String sourceSnapshot;
 
-    private Float similarity;
+  private Float similarity;
 
-    private String note;
+  private String note;
 
-    @Column(name = "merged_at", nullable = false)
-    private Instant mergedAt = Instant.now();
+  @Column(name = "merged_at", nullable = false)
+  private Instant mergedAt = Instant.now();
 
-    public MergeLog() {}
+  public MergeLog() {
+  }
 
-    public MergeLog(UUID intoQuestionId, String sourceSnapshot) {
-        this.intoQuestionId = intoQuestionId;
-        this.sourceSnapshot = sourceSnapshot;
-    }
+  public MergeLog(UUID intoQuestionId, String sourceSnapshot) {
+    this.intoQuestionId = intoQuestionId;
+    this.sourceSnapshot = sourceSnapshot;
+  }
 
-    public UUID getId() {
-        return id;
-    }
+  public UUID getId() {
+    return id;
+  }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+  public void setId(UUID id) {
+    this.id = id;
+  }
 
-    public UUID getIntoQuestionId() {
-        return intoQuestionId;
-    }
+  public UUID getIntoQuestionId() {
+    return intoQuestionId;
+  }
 
-    public void setIntoQuestionId(UUID intoQuestionId) {
-        this.intoQuestionId = intoQuestionId;
-    }
+  public void setIntoQuestionId(UUID intoQuestionId) {
+    this.intoQuestionId = intoQuestionId;
+  }
 
-    public String getSourceSnapshot() {
-        return sourceSnapshot;
-    }
+  public String getSourceSnapshot() {
+    return sourceSnapshot;
+  }
 
-    public void setSourceSnapshot(String sourceSnapshot) {
-        this.sourceSnapshot = sourceSnapshot;
-    }
+  public void setSourceSnapshot(String sourceSnapshot) {
+    this.sourceSnapshot = sourceSnapshot;
+  }
 
-    public Float getSimilarity() {
-        return similarity;
-    }
+  public Float getSimilarity() {
+    return similarity;
+  }
 
-    public void setSimilarity(Float similarity) {
-        this.similarity = similarity;
-    }
+  public void setSimilarity(Float similarity) {
+    this.similarity = similarity;
+  }
 
-    public String getNote() {
-        return note;
-    }
+  public String getNote() {
+    return note;
+  }
 
-    public void setNote(String note) {
-        this.note = note;
-    }
+  public void setNote(String note) {
+    this.note = note;
+  }
 
-    public Instant getMergedAt() {
-        return mergedAt;
-    }
+  public Instant getMergedAt() {
+    return mergedAt;
+  }
 
-    public void setMergedAt(Instant mergedAt) {
-        this.mergedAt = mergedAt;
-    }
+  public void setMergedAt(Instant mergedAt) {
+    this.mergedAt = mergedAt;
+  }
 }

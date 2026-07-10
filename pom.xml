@@ -1,104 +1,104 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <artifactId>interview-kb</artifactId>
 
-    <groupId>com.interviewkb</groupId>
-    <artifactId>interview-kb</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+  <build>
+    <plugins>
+      <!-- Report-only: never fails the build, just prints violations on every `mvn verify`. -->
+      <plugin>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <configuration>
+          <configLocation>google_checks.xml</configLocation>
+          <consoleOutput>true</consoleOutput>
+          <failOnViolation>false</failOnViolation>
+          <failsOnError>false</failsOnError>
+          <violationSeverity>warning</violationSeverity>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <id>checkstyle-check</id>
+            <phase>verify</phase>
+          </execution>
+        </executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <version>3.6.0</version>
+      </plugin>
 
-    <name>Interview Knowledge Base</name>
-    <description>IT interview knowledge base — parent POM</description>
+      <plugin>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <configuration>
+          <failOnViolation>false</failOnViolation>
+          <printFailingErrors>true</printFailingErrors>
+          <rulesets>
+            <ruleset>category/java/bestpractices.xml</ruleset>
+            <ruleset>category/java/errorprone.xml</ruleset>
+            <ruleset>category/java/design.xml</ruleset>
+          </rulesets>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <id>pmd-check</id>
+            <phase>verify</phase>
+          </execution>
+        </executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <version>3.26.0</version>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <artifactId>spring-ai-bom</artifactId>
+        <groupId>org.springframework.ai</groupId>
+        <scope>import</scope>
+        <type>pom</type>
+        <version>${spring-ai.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <description>IT interview knowledge base — parent POM</description>
+  <groupId>com.interviewkb</groupId>
 
-    <modules>
-        <module>shared</module>
-        <module>view-app</module>
-        <module>ingest-app</module>
-    </modules>
+  <modelVersion>4.0.0</modelVersion>
+  <modules>
+    <module>shared</module>
+    <module>view-app</module>
+    <module>ingest-app</module>
+  </modules>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.13</version>
-        <relativePath/>
-    </parent>
+  <name>Interview Knowledge Base</name>
 
-    <properties>
-        <java.version>21</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-ai.version>1.1.8</spring-ai.version>
-        <postgresql.version>42.7.13</postgresql.version>
-        <commonmark.version>0.29.0</commonmark.version>
+  <packaging>pom</packaging>
 
-        <!-- SonarCloud: adjust to match whatever org/project you actually create there. -->
-        <sonar.organization>posseidon</sonar.organization>
-        <sonar.projectKey>posseidon_interview-kb</sonar.projectKey>
-        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-    </properties>
+  <parent>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <relativePath/>
+    <version>3.4.13</version>
+  </parent>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.ai</groupId>
-                <artifactId>spring-ai-bom</artifactId>
-                <version>${spring-ai.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+  <properties>
+    <commonmark.version>0.29.0</commonmark.version>
+    <java.version>21</java.version>
+    <postgresql.version>42.7.13</postgresql.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
 
-    <build>
-        <plugins>
-            <!-- Report-only: never fails the build, just prints violations on every `mvn verify`. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.6.0</version>
-                <configuration>
-                    <configLocation>google_checks.xml</configLocation>
-                    <consoleOutput>true</consoleOutput>
-                    <violationSeverity>warning</violationSeverity>
-                    <failOnViolation>false</failOnViolation>
-                    <failsOnError>false</failsOnError>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>checkstyle-check</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+    <!-- SonarCloud: adjust to match whatever org/project you actually create there. -->
+    <sonar.organization>posseidon</sonar.organization>
+    <sonar.projectKey>posseidon_interview-kb</sonar.projectKey>
+    <spring-ai.version>1.1.8</spring-ai.version>
+  </properties>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.26.0</version>
-                <configuration>
-                    <printFailingErrors>true</printFailingErrors>
-                    <failOnViolation>false</failOnViolation>
-                    <rulesets>
-                        <ruleset>category/java/bestpractices.xml</ruleset>
-                        <ruleset>category/java/errorprone.xml</ruleset>
-                        <ruleset>category/java/design.xml</ruleset>
-                    </rulesets>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>pmd-check</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+  <version>1.1.0-SNAPSHOT</version>
 
 </project>

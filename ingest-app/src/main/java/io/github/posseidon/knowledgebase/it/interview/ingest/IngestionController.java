@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class IngestionController {
 
-    private final IngestionService ingestionService;
+  private final IngestionService ingestionService;
 
-    public IngestionController(IngestionService ingestionService) {
-        this.ingestionService = ingestionService;
-    }
+  public IngestionController(IngestionService ingestionService) {
+    this.ingestionService = ingestionService;
+  }
 
-    @PostMapping("/ingest")
-    public ResponseEntity<IngestResponse> ingest(@RequestBody IngestRequest request) {
-        return ResponseEntity.ok(ingestionService.ingest(request));
-    }
+  @PostMapping("/ingest")
+  public ResponseEntity<IngestResponse> ingest(@RequestBody IngestRequest request) {
+    return ResponseEntity.ok(ingestionService.ingest(request));
+  }
 }

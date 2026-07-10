@@ -10,21 +10,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class InterviewIngestController {
 
-    private final InterviewIngestService interviewIngestService;
+  private final InterviewIngestService interviewIngestService;
 
-    public InterviewIngestController(InterviewIngestService interviewIngestService) {
-        this.interviewIngestService = interviewIngestService;
-    }
+  public InterviewIngestController(InterviewIngestService interviewIngestService) {
+    this.interviewIngestService = interviewIngestService;
+  }
 
-    @PostMapping("/interviews")
-    @ResponseBody
-    public InterviewIngestResponse ingest(@RequestBody InterviewDto dto) {
-        return interviewIngestService.ingest(dto);
-    }
+  @PostMapping("/interviews")
+  public InterviewIngestResponse ingest(@RequestBody InterviewDto dto) {
+    return interviewIngestService.ingest(dto);
+  }
 
-    @PostMapping("/interviews/questions")
-    @ResponseBody
-    public InterviewIngestResponse addQuestions(@RequestBody InterviewDto dto) {
-        return interviewIngestService.addQuestions(dto);
-    }
+  @PostMapping("/interviews/questions")
+  public InterviewIngestResponse addQuestions(@RequestBody InterviewDto dto) {
+    return interviewIngestService.addQuestions(dto);
+  }
 }

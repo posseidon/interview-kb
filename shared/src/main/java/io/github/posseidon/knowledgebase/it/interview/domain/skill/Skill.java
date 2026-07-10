@@ -1,7 +1,14 @@
 package io.github.posseidon.knowledgebase.it.interview.domain.skill;
 
-import jakarta.persistence.*;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -9,136 +16,137 @@ import java.util.UUID;
 @Table(name = "skill")
 public class Skill {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @Column(nullable = false)
-    private String name;
+  @Column(nullable = false)
+  private String name;
 
-    @Column(nullable = false, unique = true)
-    private String path;
+  @Column(nullable = false, unique = true)
+  private String path;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
+  @Column(columnDefinition = "TEXT")
+  private String description;
 
-    @Column(name = "position_count")
-    private Integer positionCount;
+  @Column(name = "position_count")
+  private Integer positionCount;
 
-    @Column(name = "novice_criteria", columnDefinition = "TEXT")
-    private String noviceCriteria;
+  @Column(name = "novice_criteria", columnDefinition = "TEXT")
+  private String noviceCriteria;
 
-    @Column(name = "intermediate_criteria", columnDefinition = "TEXT")
-    private String intermediateCriteria;
+  @Column(name = "intermediate_criteria", columnDefinition = "TEXT")
+  private String intermediateCriteria;
 
-    @Column(name = "advanced_criteria", columnDefinition = "TEXT")
-    private String advancedCriteria;
+  @Column(name = "advanced_criteria", columnDefinition = "TEXT")
+  private String advancedCriteria;
 
-    @Column(name = "expert_criteria", columnDefinition = "TEXT")
-    private String expertCriteria;
+  @Column(name = "expert_criteria", columnDefinition = "TEXT")
+  private String expertCriteria;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    private Skill parent;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "parent_id")
+  private Skill parent;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+  @Column(name = "created_at", nullable = false)
+  private Instant createdAt = Instant.now();
 
-    public Skill() {}
+  public Skill() {
+  }
 
-    public Skill(String name, String path, String description, Integer positionCount, Skill parent) {
-        this.name = name;
-        this.path = path;
-        this.description = description;
-        this.positionCount = positionCount;
-        this.parent = parent;
-    }
+  public Skill(String name, String path, String description, Integer positionCount, Skill parent) {
+    this.name = name;
+    this.path = path;
+    this.description = description;
+    this.positionCount = positionCount;
+    this.parent = parent;
+  }
 
-    public UUID getId() {
-        return id;
-    }
+  public UUID getId() {
+    return id;
+  }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+  public void setId(UUID id) {
+    this.id = id;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public String getPath() {
-        return path;
-    }
+  public String getPath() {
+    return path;
+  }
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+  public void setPath(String path) {
+    this.path = path;
+  }
 
-    public String getDescription() {
-        return description;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public Integer getPositionCount() {
-        return positionCount;
-    }
+  public Integer getPositionCount() {
+    return positionCount;
+  }
 
-    public void setPositionCount(Integer positionCount) {
-        this.positionCount = positionCount;
-    }
+  public void setPositionCount(Integer positionCount) {
+    this.positionCount = positionCount;
+  }
 
-    public String getNoviceCriteria() {
-        return noviceCriteria;
-    }
+  public String getNoviceCriteria() {
+    return noviceCriteria;
+  }
 
-    public void setNoviceCriteria(String noviceCriteria) {
-        this.noviceCriteria = noviceCriteria;
-    }
+  public void setNoviceCriteria(String noviceCriteria) {
+    this.noviceCriteria = noviceCriteria;
+  }
 
-    public String getIntermediateCriteria() {
-        return intermediateCriteria;
-    }
+  public String getIntermediateCriteria() {
+    return intermediateCriteria;
+  }
 
-    public void setIntermediateCriteria(String intermediateCriteria) {
-        this.intermediateCriteria = intermediateCriteria;
-    }
+  public void setIntermediateCriteria(String intermediateCriteria) {
+    this.intermediateCriteria = intermediateCriteria;
+  }
 
-    public String getAdvancedCriteria() {
-        return advancedCriteria;
-    }
+  public String getAdvancedCriteria() {
+    return advancedCriteria;
+  }
 
-    public void setAdvancedCriteria(String advancedCriteria) {
-        this.advancedCriteria = advancedCriteria;
-    }
+  public void setAdvancedCriteria(String advancedCriteria) {
+    this.advancedCriteria = advancedCriteria;
+  }
 
-    public String getExpertCriteria() {
-        return expertCriteria;
-    }
+  public String getExpertCriteria() {
+    return expertCriteria;
+  }
 
-    public void setExpertCriteria(String expertCriteria) {
-        this.expertCriteria = expertCriteria;
-    }
+  public void setExpertCriteria(String expertCriteria) {
+    this.expertCriteria = expertCriteria;
+  }
 
-    public Skill getParent() {
-        return parent;
-    }
+  public Skill getParent() {
+    return parent;
+  }
 
-    public void setParent(Skill parent) {
-        this.parent = parent;
-    }
+  public void setParent(Skill parent) {
+    this.parent = parent;
+  }
 
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
+  public Instant getCreatedAt() {
+    return createdAt;
+  }
 
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
+  public void setCreatedAt(Instant createdAt) {
+    this.createdAt = createdAt;
+  }
 }

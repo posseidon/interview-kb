@@ -9,11 +9,16 @@ import java.util.List;
  */
 public final class QuestionScope {
 
-    private QuestionScope() {}
+  private QuestionScope() {
+  }
 
-    public static List<QuestionView> filter(List<QuestionView> results, String scope) {
-        if ("coding".equals(scope)) return results.stream().filter(QuestionView::requiresImpl).toList();
-        if ("theory".equals(scope)) return results.stream().filter(r -> !r.requiresImpl()).toList();
-        return results;
-    }
+  public static List<QuestionView> filter(List<QuestionView> results, String scope) {
+      if ("coding".equals(scope)) {
+          return results.stream().filter(QuestionView::requiresImpl).toList();
+      }
+      if ("theory".equals(scope)) {
+          return results.stream().filter(r -> !r.requiresImpl()).toList();
+      }
+    return results;
+  }
 }

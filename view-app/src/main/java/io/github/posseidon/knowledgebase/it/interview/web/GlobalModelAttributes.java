@@ -7,14 +7,14 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ControllerAdvice
 public class GlobalModelAttributes {
 
-    private final Basket basket;
+  private final Basket basket;
 
-    public GlobalModelAttributes(Basket basket) {
-        this.basket = basket;
-    }
+  public GlobalModelAttributes(Basket basket) {
+    this.basket = basket;
+  }
 
-    @ModelAttribute("basketSize")
-    public int basketSize() {
-        return basket.size();
-    }
+  @ModelAttribute("basketSize")
+  public int basketSize() {
+    return basket.size();
+  }
 }

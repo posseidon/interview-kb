@@ -10,11 +10,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class McpToolConfig {
 
-    @Bean
-    public ToolCallbackProvider mcpTools(SkillQuestionMcpTool skillQuestionMcpTool,
-                                         QuestionSearchMcpTool questionSearchMcpTool) {
-        return MethodToolCallbackProvider.builder()
-                .toolObjects(skillQuestionMcpTool, questionSearchMcpTool)
-                .build();
-    }
+  @Bean
+  public ToolCallbackProvider mcpTools(SkillQuestionMcpTool skillQuestionMcpTool,
+      QuestionSearchMcpTool questionSearchMcpTool) {
+    return MethodToolCallbackProvider.builder()
+        .toolObjects(skillQuestionMcpTool, questionSearchMcpTool)
+        .build();
+  }
 }

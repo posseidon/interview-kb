@@ -5,26 +5,26 @@
 <th:block th:replace="~{fragments/common :: nav}"></th:block>
 
 <main class="hb-page hb-page--basket">
-    <a class="hb-back" th:href="@{/skills}">&lt; Skills</a>
-    <h1 class="hb-title">BASKET</h1>
+  <a class="hb-back" th:href="@{/skills}">&lt; Skills</a>
+  <h1 class="hb-title">BASKET</h1>
 
-    <div class="hb-empty" th:if="${isEmpty}">Your basket is empty. Add skills from a group view.</div>
+  <div class="hb-empty" th:if="${isEmpty}">Your basket is empty. Add skills from a group view.</div>
 
-    <div th:unless="${isEmpty}">
-        <div class="hb-basket-item" th:each="item : ${items}">
-            <div>
-                <div class="hb-topic-name" th:text="${item.skillName}">Skill name</div>
-                <div class="hb-skill-meta" th:text="${item.level}">LEVEL</div>
-            </div>
-            <form method="post" th:action="@{/basket/items/{id}/remove(id=${item.skillId})}">
-                <button class="hb-btn" type="submit">Remove</button>
-            </form>
-        </div>
-
-        <form method="post" th:action="@{/basket/checkout}">
-            <button class="hb-btn hb-btn--primary hb-checkout-btn" type="submit">Checkout</button>
-        </form>
+  <div th:unless="${isEmpty}">
+    <div class="hb-basket-item" th:each="item : ${items}">
+      <div>
+        <div class="hb-topic-name" th:text="${item.skillName}">Skill name</div>
+        <div class="hb-skill-meta" th:text="${item.level}">LEVEL</div>
+      </div>
+      <form method="post" th:action="@{/basket/items/{id}/remove(id=${item.skillId})}">
+        <button class="hb-btn" type="submit">Remove</button>
+      </form>
     </div>
+
+    <form method="post" th:action="@{/basket/checkout}">
+      <button class="hb-btn hb-btn--primary hb-checkout-btn" type="submit">Checkout</button>
+    </form>
+  </div>
 </main>
 </body>
 </html>

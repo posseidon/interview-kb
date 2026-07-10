@@ -6,83 +6,84 @@
 
 <main class="hb-page hb-page--skills">
 
-    <div class="hb-search-form">
-        <input autocomplete="off" class="hb-search-input" id="hb-skill-search-q"
-               oninput="onSkillSearchInput(this.value)" placeholder="Search skill name ..."
-               type="text"/>
-    </div>
-    <div id="hb-skill-search-results"></div>
+  <div class="hb-search-form">
+    <input autocomplete="off" class="hb-search-input" id="hb-skill-search-q"
+           oninput="onSkillSearchInput(this.value)" placeholder="Search skill name ..."
+           type="text"/>
+  </div>
+  <div id="hb-skill-search-results"></div>
 
-    <div id="hb-skill-groups">
+  <div id="hb-skill-groups">
 
-    </div>
+  </div>
 </main>
 
 <script th:src="@{/js/skill-basket.js}"></script>
 <script>
-    var _skillSearchTimer;
-    var SKILL_LEVELS = ['NOVICE', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
+  var _skillSearchTimer;
+  var SKILL_LEVELS = ['NOVICE', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
 
-    function onSkillSearchInput(q) {
-        clearTimeout(_skillSearchTimer);
-        var resultsEl = document.getElementById('hb-skill-search-results');
-        var groupsEl = document.getElementById('hb-skill-groups');
-        if (!q.trim()) {
-            resultsEl.innerHTML = '';
-            groupsEl.style.display = '';
-            return;
+  function onSkillSearchInput(q) {
+    clearTimeout(_skillSearchTimer);
+    var resultsEl = document.getElementById('hb-skill-search-results');
+    var groupsEl = document.getElementById('hb-skill-groups');
+    if (!q.trim()) {
+      resultsEl.innerHTML = '';
+      groupsEl.style.display = '';
+      return;
+    }
+    groupsEl.style.display = 'none';
+    _skillSearchTimer = setTimeout(function () {
+      fetch('/skills/search?q=' + encodeURIComponent(q))
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (data) {
+        if (!data.length) {
+          resultsEl.innerHTML = '<div class="hb-filter-empty">No skills match.</div>';
+          return;
         }
-        groupsEl.style.display = 'none';
-        _skillSearchTimer = setTimeout(function () {
-            fetch('/skills/search?q=' + encodeURIComponent(q))
-                .then(function (r) {
-                    return r.json();
-                })
-                .then(function (data) {
-                    if (!data.length) {
-                        resultsEl.innerHTML = '<div class="hb-filter-empty">No skills match.</div>';
-                        return;
-                    }
-                    resultsEl.innerHTML = data.map(renderSkillResult).join('');
-                });
-        }, 200);
-    }
+        resultsEl.innerHTML = data.map(renderSkillResult).join('');
+      });
+    }, 200);
+  }
 
-    function renderSkillResult(s) {
-        return '<div class="hb-skill-row">'
-            + '<a class="hb-skill-link" href="/skills/' + encodeURIComponent(s.id) + '">'
-            + '<div class="hb-topic-name">' + escSkillHtml(s.name) + '</div>'
-            + (s.description ? '<div class="hb-skill-desc">' + escSkillHtml(s.description) + '</div>' : '')
-            + '</a>'
-            + '<form class="hb-skill-form" data-skill-id="' + s.id + '">'
-            + '<input type="hidden" class="hb-level-select" value="INTERMEDIATE" />'
-            + '<div class="hb-skill-form-actions">'
-            + '<div class="hb-battery" data-level="INTERMEDIATE">'
-            + '<div class="hb-battery-segment" data-index="1" data-level="NOVICE" title="Novice"></div>'
-            + '<div class="hb-battery-segment" data-index="2" data-level="INTERMEDIATE" title="Intermediate"></div>'
-            + '<div class="hb-battery-segment" data-index="3" data-level="ADVANCED" title="Advanced"></div>'
-            + '<div class="hb-battery-segment" data-index="4" data-level="EXPERT" title="Expert"></div>'
-            + '</div>'
-            + '<button class="hb-btn-basket" type="submit" aria-label="Add to basket" title="Add to basket">'
-            + '<svg class="hb-icon-basket-add" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">'
-            + '<path d="M2 5h12l-1 8.5a1 1 0 0 1-1 0.9H4a1 1 0 0 1-1-0.9L2 5z"/>'
-            + '<path d="M5 5V4a3 3 0 0 1 6 0v1"/>'
-            + '<path d="M7 9.5h3M8.5 8v3" stroke-width="1.5"/>'
-            + '</svg>'
-            + '<svg class="hb-icon-basket-added" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">'
-            + '<path d="M2 5h12l-1 8.5a1 1 0 0 1-1 0.9H4a1 1 0 0 1-1-0.9L2 5z"/>'
-            + '<path d="M5 5V4a3 3 0 0 1 6 0v1"/>'
-            + '<path d="M6 9.5l2 2 3-3.5" stroke-width="1.5"/>'
-            + '</svg>'
-            + '</button>'
-            + '</div>'
-            + '</form>'
-            + '</div>';
-    }
+  function renderSkillResult(s) {
+    return '<div class="hb-skill-row">'
+        + '<a class="hb-skill-link" href="/skills/' + encodeURIComponent(s.id) + '">'
+        + '<div class="hb-topic-name">' + escSkillHtml(s.name) + '</div>'
+        + (s.description ? '<div class="hb-skill-desc">' + escSkillHtml(s.description) + '</div>'
+            : '')
+        + '</a>'
+        + '<form class="hb-skill-form" data-skill-id="' + s.id + '">'
+        + '<input type="hidden" class="hb-level-select" value="INTERMEDIATE" />'
+        + '<div class="hb-skill-form-actions">'
+        + '<div class="hb-battery" data-level="INTERMEDIATE">'
+        + '<div class="hb-battery-segment" data-index="1" data-level="NOVICE" title="Novice"></div>'
+        + '<div class="hb-battery-segment" data-index="2" data-level="INTERMEDIATE" title="Intermediate"></div>'
+        + '<div class="hb-battery-segment" data-index="3" data-level="ADVANCED" title="Advanced"></div>'
+        + '<div class="hb-battery-segment" data-index="4" data-level="EXPERT" title="Expert"></div>'
+        + '</div>'
+        + '<button class="hb-btn-basket" type="submit" aria-label="Add to basket" title="Add to basket">'
+        + '<svg class="hb-icon-basket-add" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">'
+        + '<path d="M2 5h12l-1 8.5a1 1 0 0 1-1 0.9H4a1 1 0 0 1-1-0.9L2 5z"/>'
+        + '<path d="M5 5V4a3 3 0 0 1 6 0v1"/>'
+        + '<path d="M7 9.5h3M8.5 8v3" stroke-width="1.5"/>'
+        + '</svg>'
+        + '<svg class="hb-icon-basket-added" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">'
+        + '<path d="M2 5h12l-1 8.5a1 1 0 0 1-1 0.9H4a1 1 0 0 1-1-0.9L2 5z"/>'
+        + '<path d="M5 5V4a3 3 0 0 1 6 0v1"/>'
+        + '<path d="M6 9.5l2 2 3-3.5" stroke-width="1.5"/>'
+        + '</svg>'
+        + '</button>'
+        + '</div>'
+        + '</form>'
+        + '</div>';
+  }
 
-    function escSkillHtml(str) {
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
+  function escSkillHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
 </script>
 </body>
 </html>

@@ -9,17 +9,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AskController {
 
-    private final AskService askService;
+  private final AskService askService;
 
-    public AskController(AskService askService) {
-        this.askService = askService;
-    }
+  public AskController(AskService askService) {
+    this.askService = askService;
+  }
 
-    @PostMapping("/ask")
-    public ResponseEntity<AskResponse> ask(@RequestBody AskRequest request) {
-        AskResponse response = askService.ask(request.query());
-        return ResponseEntity.ok(response);
-    }
+  @PostMapping("/ask")
+  public ResponseEntity<AskResponse> ask(@RequestBody AskRequest request) {
+    AskResponse response = askService.ask(request.query());
+    return ResponseEntity.ok(response);
+  }
 
-    public record AskRequest(String query) {}
+  public record AskRequest(String query) {
+
+  }
 }

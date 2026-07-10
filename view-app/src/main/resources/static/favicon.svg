@@ -1,18 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-    <!-- Blue rounded-square app background -->
-    <rect width="32" height="32" rx="6" fill="#0052FF"/>
-    <!-- Left book page -->
-    <path d="M7 9 L15 10.5 L15 23 L7 21.5 Z" fill="white" opacity="0.65"/>
-    <!-- Right book page -->
-    <path d="M25 9 L17 10.5 L17 23 L25 21.5 Z" fill="white"/>
-    <!-- Spine -->
-    <rect x="15" y="9" width="2" height="14" fill="white" opacity="0.45"/>
-    <!-- > code-prompt chevron on right page (blue on white) -->
-    <polyline
-            points="19,14.5 22.5,16.5 19,18.5"
-            fill="none"
-            stroke="#0052FF"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"/>
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Blue rounded-square app background -->
+  <path d="M7 9 L15 10.5 L15 23 L7 21.5 Z" fill="white" opacity="0.65"/>
+  <!-- Left book page -->
+  <path d="M25 9 L17 10.5 L17 23 L25 21.5 Z" fill="white"/>
+  <!-- Right book page -->
+  <polyline
+    fill="none"
+    points="19,14.5 22.5,16.5 19,18.5"
+    stroke="#0052FF"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"/>
+  <!-- Spine -->
+  <rect fill="white" height="14" opacity="0.45" width="2" x="15" y="9"/>
+  <!-- > code-prompt chevron on right page (blue on white) -->
+  <rect fill="#0052FF" height="32" rx="6" width="32"/>
 </svg>

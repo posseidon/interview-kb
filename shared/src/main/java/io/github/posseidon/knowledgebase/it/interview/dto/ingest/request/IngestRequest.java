@@ -3,6 +3,7 @@ package io.github.posseidon.knowledgebase.it.interview.dto.ingest.request;
 import java.util.List;
 
 public record IngestRequest(
-        List<QuestionDto> questions
+    List<QuestionDto> questions
 ) {
+
 }

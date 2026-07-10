@@ -2,8 +2,19 @@ package io.github.posseidon.knowledgebase.it.interview.domain.question;
 
 import io.github.posseidon.knowledgebase.it.interview.domain.skill.Skill;
 import io.github.posseidon.knowledgebase.it.interview.domain.skill.SkillLevel;
-import jakarta.persistence.*;
-
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -13,147 +24,148 @@ import java.util.UUID;
 @Table(name = "question")
 public class Question {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @Column(name = "external_id", unique = true)
-    private String externalId;
+  @Column(name = "external_id", unique = true)
+  private String externalId;
 
-    @Column(nullable = false)
-    private String content;
+  @Column(nullable = false)
+  private String content;
 
-    @Column(name = "content_hash", nullable = false)
-    private String contentHash;
+  @Column(name = "content_hash", nullable = false)
+  private String contentHash;
 
-    @Column(name = "requires_impl", nullable = false)
-    private boolean requiresImpl = false;
+  @Column(name = "requires_impl", nullable = false)
+  private boolean requiresImpl = false;
 
-    private String language;
+  private String language;
 
-    @Column(nullable = false)
-    private Integer frequency = 1;
+  @Column(nullable = false)
+  private Integer frequency = 1;
 
-    @Enumerated(EnumType.STRING)
-    private SkillLevel level;
+  @Enumerated(EnumType.STRING)
+  private SkillLevel level;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+  @Column(name = "created_at", nullable = false)
+  private Instant createdAt = Instant.now();
 
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt = Instant.now();
+  @Column(name = "updated_at", nullable = false)
+  private Instant updatedAt = Instant.now();
 
-    @ManyToMany
-    @JoinTable(
-            name = "question_skill",
-            joinColumns = @JoinColumn(name = "question_id"),
-            inverseJoinColumns = @JoinColumn(name = "skill_id")
-    )
-    private Set<Skill> skills = new HashSet<>();
+  @ManyToMany
+  @JoinTable(
+      name = "question_skill",
+      joinColumns = @JoinColumn(name = "question_id"),
+      inverseJoinColumns = @JoinColumn(name = "skill_id")
+  )
+  private Set<Skill> skills = new HashSet<>();
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Answer> answers = new HashSet<>();
+  @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<Answer> answers = new HashSet<>();
 
-    public Question() {}
+  public Question() {
+  }
 
-    public Question(String content, String contentHash) {
-        this.content = content;
-        this.contentHash = contentHash;
-    }
+  public Question(String content, String contentHash) {
+    this.content = content;
+    this.contentHash = contentHash;
+  }
 
-    public UUID getId() {
-        return id;
-    }
+  public UUID getId() {
+    return id;
+  }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+  public void setId(UUID id) {
+    this.id = id;
+  }
 
-    public String getExternalId() {
-        return externalId;
-    }
+  public String getExternalId() {
+    return externalId;
+  }
 
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
-    }
+  public void setExternalId(String externalId) {
+    this.externalId = externalId;
+  }
 
-    public String getContent() {
-        return content;
-    }
+  public String getContent() {
+    return content;
+  }
 
-    public void setContent(String content) {
-        this.content = content;
-    }
+  public void setContent(String content) {
+    this.content = content;
+  }
 
-    public String getContentHash() {
-        return contentHash;
-    }
+  public String getContentHash() {
+    return contentHash;
+  }
 
-    public void setContentHash(String contentHash) {
-        this.contentHash = contentHash;
-    }
+  public void setContentHash(String contentHash) {
+    this.contentHash = contentHash;
+  }
 
-    public boolean isRequiresImpl() {
-        return requiresImpl;
-    }
+  public boolean isRequiresImpl() {
+    return requiresImpl;
+  }
 
-    public void setRequiresImpl(boolean requiresImpl) {
-        this.requiresImpl = requiresImpl;
-    }
+  public void setRequiresImpl(boolean requiresImpl) {
+    this.requiresImpl = requiresImpl;
+  }
 
-    public String getLanguage() {
-        return language;
-    }
+  public String getLanguage() {
+    return language;
+  }
 
-    public void setLanguage(String language) {
-        this.language = language;
-    }
+  public void setLanguage(String language) {
+    this.language = language;
+  }
 
-    public Integer getFrequency() {
-        return frequency;
-    }
+  public Integer getFrequency() {
+    return frequency;
+  }
 
-    public void setFrequency(Integer frequency) {
-        this.frequency = frequency;
-    }
+  public void setFrequency(Integer frequency) {
+    this.frequency = frequency;
+  }
 
-    public SkillLevel getLevel() {
-        return level;
-    }
+  public SkillLevel getLevel() {
+    return level;
+  }
 
-    public void setLevel(SkillLevel level) {
-        this.level = level;
-    }
+  public void setLevel(SkillLevel level) {
+    this.level = level;
+  }
 
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
+  public Instant getCreatedAt() {
+    return createdAt;
+  }
 
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
+  public void setCreatedAt(Instant createdAt) {
+    this.createdAt = createdAt;
+  }
 
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
+  public Instant getUpdatedAt() {
+    return updatedAt;
+  }
 
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+  public void setUpdatedAt(Instant updatedAt) {
+    this.updatedAt = updatedAt;
+  }
 
-    public Set<Skill> getSkills() {
-        return skills;
-    }
+  public Set<Skill> getSkills() {
+    return skills;
+  }
 
-    public void setSkills(Set<Skill> skills) {
-        this.skills = skills;
-    }
+  public void setSkills(Set<Skill> skills) {
+    this.skills = skills;
+  }
 
-    public Set<Answer> getAnswers() {
-        return answers;
-    }
+  public Set<Answer> getAnswers() {
+    return answers;
+  }
 
-    public void setAnswers(Set<Answer> answers) {
-        this.answers = answers;
-    }
+  public void setAnswers(Set<Answer> answers) {
+    this.answers = answers;
+  }
 }

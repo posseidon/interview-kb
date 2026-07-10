@@ -9,14 +9,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class QuestionMapper {
 
-    public QuestionView toView(Question q) {
-        return new QuestionView(
-                q.getId(), q.getExternalId(), q.getContent(),
-                q.isRequiresImpl(), q.getLanguage(), q.getFrequency(),
-                q.getSkills().stream().map(s -> new SkillRef(s.getId(), s.getName())).toList(),
-                q.getAnswers().stream()
-                        .map(a -> new AnswerView(a.getId(), a.getSource(), a.getContent()))
-                        .toList()
-        );
-    }
+  public QuestionView toView(Question q) {
+    return new QuestionView(
+        q.getId(), q.getExternalId(), q.getContent(),
+        q.isRequiresImpl(), q.getLanguage(), q.getFrequency(),
+        q.getSkills().stream().map(s -> new SkillRef(s.getId(), s.getName())).toList(),
+        q.getAnswers().stream()
+            .map(a -> new AnswerView(a.getId(), a.getSource(), a.getContent()))
+            .toList()
+    );
+  }
 }
