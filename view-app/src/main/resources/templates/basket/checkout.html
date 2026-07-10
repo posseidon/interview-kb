@@ -4,7 +4,7 @@
 <body>
   <th:block th:replace="~{fragments/common :: nav}"></th:block>
 
-  <main class="hb-page hb-page--search">
+  <main class="hb-page hb-page--detail">
     <a class="hb-back" th:href="@{/basket}">&lt; Basket</a>
     <h1 class="hb-title">QUESTIONS</h1>
     <div class="hb-stat" th:text="${totalQuestions} + ' questions matched'">N questions matched</div>
@@ -19,6 +19,12 @@
       <div class="hb-empty" th:if="${#lists.isEmpty(group.questions)}">No questions found for this skill/level yet.</div>
 
       <a class="hb-question-row" th:each="q : ${group.questions}" th:href="@{/questions/{id}(id=${q.id})}">
+        <div class="hb-question-icon">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
+               stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <path d="M4 2L8 6L4 10"/>
+          </svg>
+        </div>
         <div class="hb-question-body">
           <div class="hb-question-title" th:text="${q.content}">Question title</div>
           <div class="hb-question-tag"

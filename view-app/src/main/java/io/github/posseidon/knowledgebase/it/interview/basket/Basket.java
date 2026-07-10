@@ -22,6 +22,10 @@ public class Basket {
         items.remove(skillId);
     }
 
+    public void clear() {
+        items.clear();
+    }
+
     public Map<UUID, SkillLevel> items() {
         return items;
     }

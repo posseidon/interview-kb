@@ -55,6 +55,12 @@ public class BasketController {
         return "redirect:/basket";
     }
 
+    @PostMapping("/clear")
+    public String clear() {
+        basket.clear();
+        return "redirect:/basket";
+    }
+
     @Transactional(readOnly = true)
     @GetMapping
     public String view(Model model) {
@@ -93,6 +99,7 @@ public class BasketController {
 
         model.addAttribute("groups", groups);
         model.addAttribute("totalQuestions", byId.size());
+        basket.clear();
         return "basket/checkout";
     }
 
