@@ -8,6 +8,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Job-level env so the step's `if:` below can see it — `secrets` itself
+      # isn't a valid context inside `if:` expressions.
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,8 +32,7 @@ jobs:
       # Only runs once a SonarCloud project + SONAR_TOKEN secret exist for this repo.
       # Until then this step is skipped and the workflow stays green.
       - name: SonarCloud analysis
-        if: ${{ secrets.SONAR_TOKEN != '' }}
+        if: ${{ env.SONAR_TOKEN != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar
