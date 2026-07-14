@@ -49,7 +49,7 @@ body {
 /* ─── Nav bar ────────────────────────────────────────────────────── */
 .hb-nav {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   padding: 10px 16px;
   border-bottom: 1px solid var(--color-text);
@@ -405,6 +405,7 @@ body {
 
 .hb-chip-filter {
   flex-shrink: 0;
+  max-width: 100%;
   padding: 7px 14px;
   border-radius: 10px;
   border: 1px solid var(--color-text);
@@ -413,6 +414,8 @@ body {
   font-family: var(--font-heading);
   font-size: 14px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
 }
 
@@ -610,7 +613,7 @@ body {
   margin: 0 0 12px;
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 8px;
+  font-size: 20px;
   line-height: 1.25;
 }
 
@@ -780,9 +783,11 @@ body {
   font-size: inherit;
 }
 
-/* GFM tables */
+/* GFM tables — scroll horizontally instead of blowing out page width on narrow screens */
 .hb-answer-rendered table {
+  display: block;
   width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
   font-family: var(--font-heading);
   font-size: 13px;
@@ -1474,7 +1479,7 @@ body {
   }
 
   .hb-detail-title {
-    font-size: 15px;
+    font-size: 22px;
   }
 }
 
@@ -1496,7 +1501,7 @@ body {
   }
 
   .hb-detail-title {
-    font-size: 17px;
+    font-size: 24px;
   }
 
   /* ── Home: centered single column ───────────────────────────────*/
@@ -1516,6 +1521,6 @@ body {
   }
 
   .hb-page--detail .hb-detail-title {
-    font-size: 17px;
+    font-size: 24px;
   }
 }
