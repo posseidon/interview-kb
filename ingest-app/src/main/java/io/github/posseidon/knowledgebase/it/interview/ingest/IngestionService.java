@@ -15,6 +15,6 @@ public class IngestionService {
 
   public IngestResponse ingest(IngestRequest request) {
     QuestionUpsertService.Result result = questionUpsertService.upsert(request.questions());
-    return new IngestResponse(result.created(), result.updated(), result.answersAdded());
+    return new IngestResponse(result.created(), result.updated(), result.answersAdded(), result.questionIds());
   }
 }

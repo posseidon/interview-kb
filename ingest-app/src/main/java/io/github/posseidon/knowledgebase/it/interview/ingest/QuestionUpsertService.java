@@ -10,6 +10,7 @@ import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
 import io.github.posseidon.knowledgebase.it.interview.skill.SkillResolver;
 import io.github.posseidon.knowledgebase.it.interview.util.ContentHash;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -64,7 +65,8 @@ public class QuestionUpsertService {
     syncVectorStore(saved);
 
     int created = (int) resolved.stream().filter(ResolvedQuestion::created).count();
-    return new Result(saved, created, resolved.size() - created, answersAdded);
+
+    return new Result(saved, created, resolved.size() - created, answersAdded, saved.stream().map(Question::getId).toList());
   }
 
   private Map<String, Skill> resolveSkills(List<QuestionDto> dtos) {
@@ -210,10 +212,10 @@ public class QuestionUpsertService {
 
   }
 
-  public record Result(List<Question> questions, int created, int updated, int answersAdded) {
+  public record Result(List<Question> questions, int created, int updated, int answersAdded, List<UUID> questionIds) {
 
     static Result empty() {
-      return new Result(List.of(), 0, 0, 0);
+      return new Result(List.of(), 0, 0, 0, Collections.emptyList());
     }
   }
 }

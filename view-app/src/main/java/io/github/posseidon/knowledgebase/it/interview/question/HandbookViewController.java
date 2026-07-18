@@ -26,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -43,16 +42,13 @@ public class HandbookViewController {
   private final SkillRepository skillRepository;
   private final QuestionRepository questionRepository;
   private final QuestionMapper questionMapper;
-  private final QuestionEditService questionEditService;
 
   public HandbookViewController(SkillRepository skillRepository,
       QuestionRepository questionRepository,
-      QuestionMapper questionMapper,
-      QuestionEditService questionEditService) {
+      QuestionMapper questionMapper) {
     this.skillRepository = skillRepository;
     this.questionRepository = questionRepository;
     this.questionMapper = questionMapper;
-    this.questionEditService = questionEditService;
   }
 
   @GetMapping("/")
@@ -103,8 +99,13 @@ public class HandbookViewController {
       bySkill.computeIfAbsent(primarySkill, k -> new ArrayList<>()).add(q);
     }
     return bySkill.entrySet().stream()
-        .map(e -> new SkillResultGroup(e.getKey(), e.getValue().size(), e.getValue()))
+        .map(e -> new SkillResultGroup(e.getKey(), e.getValue().size(),
+            e.getValue().stream().map(HandbookViewController::toSearchResultItem).toList()))
         .collect(Collectors.toList());
+  }
+
+  private static SearchResultItem toSearchResultItem(QuestionView q) {
+    return new SearchResultItem(q.id(), q.requiresImpl(), Markdown.toHtml(q.content()));
   }
 
   @Transactional(readOnly = true)
@@ -126,31 +127,11 @@ public class HandbookViewController {
     return VIEW_QUESTION_DETAIL;
   }
 
-  @PostMapping("/questions/{id}")
-  public String updateQuestion(@PathVariable UUID id, @RequestParam String content) {
-    questionEditService.updateQuestionContent(id, content);
-    return redirectToQuestion(id);
+  public record SkillResultGroup(String skillName, int count, List<SearchResultItem> items) {
+
   }
 
-  @PostMapping("/questions/{id}/answers")
-  public String addAnswer(@PathVariable UUID id, @RequestParam String content) {
-    questionEditService.addAnswer(id, content);
-    return redirectToQuestion(id);
-  }
-
-  @PostMapping("/questions/{id}/answers/{answerId}")
-  public String updateAnswer(@PathVariable UUID id,
-      @PathVariable UUID answerId,
-      @RequestParam String content) {
-    questionEditService.updateAnswer(answerId, content);
-    return redirectToQuestion(id);
-  }
-
-  private String redirectToQuestion(UUID id) {
-    return "redirect:/questions/" + id;
-  }
-
-  public record SkillResultGroup(String skillName, int count, List<QuestionView> items) {
+  public record SearchResultItem(UUID id, boolean requiresImpl, String contentHtml) {
 
   }
 

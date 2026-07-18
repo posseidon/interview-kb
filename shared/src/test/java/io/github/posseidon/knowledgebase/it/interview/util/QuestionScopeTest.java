@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 class QuestionScopeTest {
 
   private static QuestionView view(boolean requiresImpl) {
-    return new QuestionView(UUID.randomUUID(), null, "content", requiresImpl, "java", 1,
+    return new QuestionView(UUID.randomUUID(), null, "content", requiresImpl, "java", 1, null,
         List.of(), List.of());
   }
 

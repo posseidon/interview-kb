@@ -45,7 +45,7 @@
                   <path d="M12 6 C12 5 13 4 16 4 H20 v14 h-4 c-3 0 -4 1 -4 2"></path>
                 </svg>
               </span>
-            <span class="hb-search-item-title" th:text="${q.content}">Question title</span>
+            <span class="hb-search-item-title" th:utext="${q.contentHtml}">Question title</span>
           </a>
         </th:block>
       </div>
@@ -55,9 +55,19 @@
       </div>
 
       <div class="hb-search-pager" id="hb-search-pager">
-        <button class="hb-pager-btn" id="hb-search-prev" type="button">&larr; Prev</button>
-        <span class="hb-pager-range" id="hb-search-range"></span>
-        <button class="hb-pager-btn" id="hb-search-next" type="button">Next &rarr;</button>
+        <button aria-label="Previous page" class="hb-pager-btn" id="hb-search-prev" type="button">
+          <svg fill="none" height="14" stroke="currentColor" stroke-linecap="round"
+               stroke-linejoin="round" stroke-width="2" viewBox="0 0 16 16" width="14">
+            <polyline points="10 3 5 8 10 13"></polyline>
+          </svg>
+        </button>
+        <div class="hb-pager-pages" id="hb-search-pages"></div>
+        <button aria-label="Next page" class="hb-pager-btn" id="hb-search-next" type="button">
+          <svg fill="none" height="14" stroke="currentColor" stroke-linecap="round"
+               stroke-linejoin="round" stroke-width="2" viewBox="0 0 16 16" width="14">
+            <polyline points="6 3 11 8 6 13"></polyline>
+          </svg>
+        </button>
       </div>
     </th:block>
 
@@ -80,7 +90,7 @@
     var pager = document.getElementById('hb-search-pager');
     var prevBtn = document.getElementById('hb-search-prev');
     var nextBtn = document.getElementById('hb-search-next');
-    var rangeEl = document.getElementById('hb-search-range');
+    var pagesEl = document.getElementById('hb-search-pages');
 
     var activeSkill = '';
     var page = 1;
@@ -89,6 +99,27 @@
       return items.filter(function (it) {
         return !activeSkill || it.getAttribute('data-skill') === activeSkill;
       });
+    }
+
+    function goToPage(pageNum) {
+      page = pageNum;
+      render();
+    }
+
+    function renderPages(totalPages) {
+      pagesEl.innerHTML = '';
+      for (var i = 1; i <= totalPages; i++) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'hb-pager-page' + (i === page ? ' hb-pager-page--active' : '');
+        btn.textContent = String(i);
+        btn.setAttribute('aria-label', 'Page ' + i);
+        if (i === page) {
+          btn.setAttribute('aria-current', 'page');
+        }
+        btn.addEventListener('click', goToPage.bind(null, i));
+        pagesEl.appendChild(btn);
+      }
     }
 
     function render() {
@@ -106,14 +137,11 @@
       });
 
       emptyEl.style.display = all.length === 0 ? 'block' : 'none';
-      pager.style.display = all.length === 0 ? 'none' : 'flex';
+      pager.style.display = all.length === 0 || totalPages <= 1 ? 'none' : 'flex';
 
       prevBtn.disabled = page === 1;
       nextBtn.disabled = page === totalPages;
-      var rangeStart = all.length === 0 ? 0 : start + 1;
-      var rangeEnd = Math.min(start + PAGE_SIZE, all.length);
-      rangeEl.textContent = (all.length === 0 ? 0 : rangeStart) + '–' + rangeEnd + ' of '
-          + all.length;
+      renderPages(totalPages);
     }
 
     chips.forEach(function (chip) {

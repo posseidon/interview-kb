@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Answer;
@@ -31,16 +30,14 @@ class HandbookViewControllerTest {
 
   private SkillRepository skillRepository;
   private QuestionRepository questionRepository;
-  private QuestionEditService questionEditService;
   private HandbookViewController controller;
 
   @BeforeEach
   void setUp() {
     skillRepository = mock(SkillRepository.class);
     questionRepository = mock(QuestionRepository.class);
-    questionEditService = mock(QuestionEditService.class);
     controller = new HandbookViewController(skillRepository, questionRepository,
-        new QuestionMapper(), questionEditService);
+        new QuestionMapper());
   }
 
   private static Question question(String content, Skill... skills) {
@@ -175,36 +172,5 @@ class HandbookViewControllerTest {
     assertThat(answerDetails).extracting(HandbookViewController.AnswerDetail::rawContent)
         .containsExactly("older answer", "newer answer");
     assertThat(model.getAttribute("createdAtDisplay")).isNotNull();
-  }
-
-  @Test
-  void updateQuestionDelegatesAndRedirects() {
-    UUID id = UUID.randomUUID();
-
-    String result = controller.updateQuestion(id, "new content");
-
-    assertThat(result).isEqualTo("redirect:/questions/" + id);
-    verify(questionEditService).updateQuestionContent(id, "new content");
-  }
-
-  @Test
-  void addAnswerDelegatesAndRedirects() {
-    UUID id = UUID.randomUUID();
-
-    String result = controller.addAnswer(id, "an answer");
-
-    assertThat(result).isEqualTo("redirect:/questions/" + id);
-    verify(questionEditService).addAnswer(id, "an answer");
-  }
-
-  @Test
-  void updateAnswerDelegatesAndRedirectsToQuestion() {
-    UUID questionId = UUID.randomUUID();
-    UUID answerId = UUID.randomUUID();
-
-    String result = controller.updateAnswer(questionId, answerId, "updated");
-
-    assertThat(result).isEqualTo("redirect:/questions/" + questionId);
-    verify(questionEditService).updateAnswer(answerId, "updated");
   }
 }

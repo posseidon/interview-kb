@@ -10,6 +10,15 @@ them from JSON, lists them by topic/tag, answers natural-language questions over
 LLM (RAG), and
 supports human-in-the-loop merging of duplicate questions.
 
+## Guardrails
+
+- **Never modify or remove an existing test to make it pass.** If a change you're making breaks a test,
+  fix the underlying code, not the test — unless the test itself is asserting genuinely outdated behavior
+  the user has explicitly asked you to change. Weakening assertions, deleting test cases, adding
+  `@Disabled`/`@Ignore`, or loosening coverage thresholds to get a green build is reward hacking: it makes
+  the build look healthy while hiding the actual regression. If you believe a test is wrong, say so and ask
+  before touching it — don't silently delete or gut it.
+
 ## Stack (do not substitute)
 
 - **Java 21**, **Spring Boot 3.4+**, **Spring AI 1.1.x** (pin the current patch from Maven Central).
@@ -38,10 +47,20 @@ supports human-in-the-loop merging of duplicate questions.
 - Because `PgVectorStore` shares the same `DataSource`, relational + vector writes go in *
   *one `@Transactional` method**
   and are atomic. Every question insert/update/delete must keep both stores in sync.
+- **`ingest-app` is the sole writer; `view-app` is read-only.** All mutations — batch upsert (`/ingest`,
+  `/interviews*`), merge (`/merge`), skill import, and single-question content edits
+  (`/ingest/question/{id}` PATCH/POST, `/ingest/question/{id}/answers/{answerId}` PATCH) — live in
+  `ingest-app`, so vector-store resync always happens alongside the relational write. `view-app` only
+  reads (`QuestionRepository`/`SkillRepository` + `QuestionMapper` → `QuestionView`); it has no write
+  endpoints and no edit UI. If a future change needs a new question/answer mutation, add it to
+  `ingest-app`, not `view-app`.
 
 ## Conventions
 
 - DTOs are Java **records**; entities are classes with `UUID` ids.
+- View DTOs (e.g. `QuestionView`) don't inherit fields from their entity automatically — adding a field to an
+  entity that a template needs means updating the record, its mapper (e.g. `QuestionMapper`), and any test
+  that constructs the record positionally.
 - **Constructor injection only** (no field injection). Prefer `final` fields.
 - Service methods that touch both stores are `@Transactional`.
 - **Flyway owns the entire schema**, including the `vector_store` table. Set
@@ -75,6 +94,7 @@ docker compose up -d          # Ollama only (DB is Supabase)
 ollama pull nomic-embed-text  # if not auto-pulled
 mvn clean verify              # compile + tests
 mvn spring-boot:run           # run the app
+mvn -pl view-app azure-webapp:deploy   # deploy view-app to the Azure Web App "ikb" (config in view-app/pom.xml)
 ```
 
 Health check: `GET /actuator/health` should be UP with DB (Supabase) + Ollama reachable.
@@ -92,6 +112,10 @@ Health check: `GET /actuator/health` should be UP with DB (Supabase) + Ollama re
 - Merge is **destructive**: the source question is hard-deleted; its full snapshot is kept in
   `merge_log.source_snapshot`.
 - "Most common questions in X" is driven by `Question.frequency`, incremented on each merge.
+- `view-app` already has infra to deploy to an existing Azure Web App (`ikb`, resource group
+  `west-eu-resource-group`, plan `asp-quizme`, West Europe, F1) via `azure-webapp-maven-plugin` — see
+  `mvn -pl view-app azure-webapp:deploy` above. `DB_PASSWORD` has no default in `application.yml` and must
+  already be set as an App Setting on the Azure Web App or the deployed instance won't start.
 
 ## Database (Supabase)
 
@@ -103,3 +127,10 @@ Health check: `GET /actuator/health` should be UP with DB (Supabase) + Ollama re
 - Supabase installs extensions in the `extensions` schema;
   `connection-init-sql: "SET search_path TO public, extensions"` ensures they are visible without
   schema qualification.
+
+## Boy Scout Rule
+
+If a change you make invalidates something this file says — a new command, a changed convention, a new
+gotcha, a moved package — update this file in the same change. Don't leave it for later; a stale CLAUDE.md
+costs every future session the time to rediscover what changed. Leave this file more accurate than you
+found it.

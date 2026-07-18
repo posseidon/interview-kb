@@ -10,7 +10,6 @@
   --color-surface-muted: #eeece5;
   --color-desc: #4a4a4a;
   --color-divider: #ececec;
-  --color-dot-inactive: #e2e0da;
   --font-heading: 'IBM Plex Mono', monospace;
   --font-body: 'EB Garamond', serif;
 }
@@ -241,6 +240,106 @@ body {
   border-bottom: none;
 }
 
+.hb-nav-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.hb-nav-menu-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  cursor: pointer;
+  padding: 0;
+}
+
+.hb-nav-menu-toggle:hover {
+  background: var(--color-text);
+  color: var(--color-background);
+}
+
+.hb-nav-menu-badge {
+  top: -6px;
+  right: -6px;
+}
+
+.hb-nav-menu-dropdown {
+  position: absolute;
+  top: 46px;
+  right: 0;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-text);
+  background: var(--color-background);
+  box-shadow: 3px 3px 0 var(--color-text);
+  z-index: 110;
+}
+
+.hb-nav-menu-dropdown[hidden] {
+  display: none;
+}
+
+.hb-nav-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--color-divider);
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  text-align: left;
+  text-decoration: none;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.hb-nav-menu-item:last-child {
+  border-bottom: none;
+}
+
+.hb-nav-menu-item:hover {
+  background: var(--color-surface-muted);
+}
+
+.hb-nav-menu-item-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 10px;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* Mobile: only the search bar + the collapsed action menu are visible in the nav.
+   Hide .hb-basket-menu (not .hb-nav-brand itself) so the grid item still generates an
+   (empty, zero-width) box — display:none on .hb-nav-brand would drop it as a grid item and
+   shift the other two into the wrong columns. */
+.hb-nav-brand .hb-basket-menu,
+.hb-nav-actions .hb-nav-icon-link {
+  display: none;
+}
+
+.hb-nav-search {
+  max-width: none;
+}
+
 .hb-basket-dropdown-item:hover {
   background: var(--color-text);
   color: var(--color-background);
@@ -343,8 +442,6 @@ body {
   max-width: 624px;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--color-divider);
-  border-right: 1px solid var(--color-divider);
 }
 
 .hb-search-toolbar {
@@ -435,7 +532,7 @@ body {
 
 .hb-search-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 13px;
   padding: 16px 26px;
   border-bottom: 1px solid var(--color-divider);
@@ -450,6 +547,7 @@ body {
 .hb-search-item-icon {
   width: 21px;
   height: 21px;
+  margin-top: 2px;
   border-radius: 5px;
   display: flex;
   align-items: center;
@@ -466,52 +564,106 @@ body {
   background: var(--color-primary);
 }
 
+/* Question content is stored as markdown and rendered to HTML — height grows with content
+   instead of truncating to one line. */
 .hb-search-item-title {
   flex: 1;
   min-width: 0;
   font-family: var(--font-body);
   font-size: 18px;
+  line-height: 1.5;
   color: var(--color-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.hb-search-item-title p {
+  margin: 0;
+}
+
+.hb-search-item-title p + p {
+  margin-top: 10px;
+}
+
+.hb-search-item-title strong {
+  font-weight: 700;
+}
+
+.hb-search-item-title em {
+  font-style: italic;
+}
+
+.hb-search-item-title code {
+  font-family: var(--font-heading);
+  font-size: 0.85em;
+  background: rgba(18, 18, 18, 0.08);
+  padding: 1px 5px;
 }
 
 .hb-search-pager {
   flex-shrink: 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 13px 26px;
+  gap: 16px;
+  padding: 16px 26px;
   background: var(--color-background);
-  border-top: 1px solid var(--color-text);
+  border-top: 1px solid var(--color-divider);
 }
 
 .hb-pager-btn {
-  padding: 8px 16px;
-  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 999px;
   border: 1px solid var(--color-text);
   background: var(--color-background);
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: 14px;
   cursor: pointer;
+  transition: transform 0.12s ease, background-color 0.12s ease, color 0.12s ease;
 }
 
 .hb-pager-btn:hover:not(:disabled) {
   background: var(--color-text);
   color: var(--color-background);
+  transform: translateY(-1px);
 }
 
 .hb-pager-btn:disabled {
   opacity: 0.35;
   cursor: default;
+  transform: none;
 }
 
-.hb-pager-range {
-  font-family: var(--font-heading);
-  font-size: 14px;
+.hb-pager-pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hb-pager-page {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: none;
   color: var(--color-muted);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.hb-pager-page:hover {
+  border-color: var(--color-text);
+  color: var(--color-text);
+}
+
+.hb-pager-page--active {
+  background: var(--color-text);
+  color: var(--color-background);
 }
 
 .hb-search-empty {
@@ -598,6 +750,14 @@ body {
 }
 
 /* ─── Detail ─────────────────────────────────────────────────────── */
+.hb-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
 .hb-chip {
   display: inline-block;
   background: var(--color-text);
@@ -607,6 +767,16 @@ body {
   text-transform: uppercase;
   padding: 4px 9px;
   margin-bottom: 14px;
+}
+
+.hb-chip-row .hb-chip {
+  margin-bottom: 0;
+}
+
+.hb-chip--level {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-text);
 }
 
 .hb-detail-title {
@@ -808,90 +978,6 @@ body {
   font-weight: 600;
 }
 
-/* ─── Edit toggle ─────────────────────────────────────────────────── */
-.hb-edit-toggle {
-  font-family: var(--font-heading);
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  color: var(--color-muted);
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  margin-top: 6px;
-  margin-bottom: 20px;
-  display: block;
-}
-
-.hb-edit-toggle:hover {
-  color: var(--color-primary);
-}
-
-/* Edit-question form sits right after the title; needs bottom gap before meta bar */
-#hb-question-edit-form {
-  margin-bottom: 20px;
-}
-
-/* ─── Add Answer ─────────────────────────────────────────────────── */
-.hb-add-answer {
-  margin-top: 40px;
-  padding-top: 20px;
-  border-top: 1px solid var(--color-text);
-}
-
-.hb-add-toggle {
-  font-family: var(--font-heading);
-  font-size: 13px;
-  color: var(--color-primary);
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-
-.hb-add-toggle:hover {
-  text-decoration: underline;
-}
-
-.hb-answer-form {
-  display: none;
-}
-
-.hb-answer-form-label {
-  font-family: var(--font-heading);
-  font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--color-muted);
-  margin-bottom: 10px;
-}
-
-.hb-answer-textarea {
-  display: block;
-  width: 100%;
-  min-height: 180px;
-  border: 1px solid var(--color-text);
-  background: var(--color-background);
-  font-family: var(--font-body);
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--color-text);
-  padding: 12px 14px;
-  resize: vertical;
-  outline: none;
-  margin-bottom: 12px;
-}
-
-.hb-answer-textarea:focus {
-  border: 2px solid var(--color-primary);
-  padding: 11px 13px;
-}
-
-.hb-answer-actions {
-  display: flex;
-  gap: 10px;
-}
-
 .hb-btn {
   font-family: var(--font-heading);
   font-size: 13px;
@@ -983,66 +1069,31 @@ body {
   flex-shrink: 0;
 }
 
+/* Skill-level dropdown: a real <select> so the level is a large, native
+   tap target on mobile instead of a fiddly click-precise widget. Rendered
+   with no native chrome so it reads as one pill together with the basket
+   button (see .hb-page--skills .hb-skill-form-actions). */
 .hb-level-select {
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  background: transparent
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23121212' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat right 2px center;
+  background-size: 9px 6px;
   font-family: var(--font-heading);
   font-size: 12px;
-  border: 1px solid var(--color-text);
-  background: var(--color-background);
+  font-weight: 600;
   color: var(--color-text);
-  padding: 8px 10px;
-}
-
-/* --- Battery Level Indicator & Custom Basket Icon Button --- */
-.hb-battery {
-  display: flex;
-  gap: 3px;
-  align-items: center;
+  padding: 8px 18px 8px 2px;
+  margin: 0;
   cursor: pointer;
-  height: 24px;
 }
 
-.hb-battery-segment {
-  width: 12px;
-  height: 20px;
-  border: 1.5px solid #d1d5db;
-  background-color: transparent;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-/* First segment rounded corners on the left */
-.hb-battery-segment:first-child {
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-}
-
-/* Last segment rounded corners on the right */
-.hb-battery-segment:last-child {
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
-
-/* Default state: active segments filled with green */
-.hb-battery[data-level="NOVICE"] .hb-battery-segment:nth-child(-n+1),
-.hb-battery[data-level="INTERMEDIATE"] .hb-battery-segment:nth-child(-n+2),
-.hb-battery[data-level="ADVANCED"] .hb-battery-segment:nth-child(-n+3),
-.hb-battery[data-level="EXPERT"] .hb-battery-segment:nth-child(-n+4) {
-  background-color: #00b85c;
-  border-color: #00b85c;
-}
-
-/* Reset segments to outline during hover */
-.hb-battery[data-hover-level] .hb-battery-segment {
-  background-color: transparent;
-  border-color: #d1d5db;
-}
-
-/* Fill segments during hover */
-.hb-battery[data-hover-level="1"] .hb-battery-segment:nth-child(-n+1),
-.hb-battery[data-hover-level="2"] .hb-battery-segment:nth-child(-n+2),
-.hb-battery[data-hover-level="3"] .hb-battery-segment:nth-child(-n+3),
-.hb-battery[data-hover-level="4"] .hb-battery-segment:nth-child(-n+4) {
-  background-color: #10b981;
-  border-color: #10b981;
+.hb-level-select:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* Custom Basket Button */
@@ -1181,43 +1232,10 @@ body {
   box-shadow: 2px 2px 0 var(--color-text);
 }
 
-.hb-page--skills .hb-battery {
-  gap: 4px;
+.hb-page--skills .hb-level-select {
   border-right: 1px solid var(--color-divider);
-  padding-right: 8px;
-  height: auto;
-}
-
-.hb-page--skills .hb-battery-segment {
-  width: 8px;
-  height: 8px;
-  border: none;
-  border-radius: 50%;
-  background-color: var(--color-dot-inactive);
-}
-
-.hb-page--skills .hb-battery-segment:first-child,
-.hb-page--skills .hb-battery-segment:last-child {
-  border-radius: 50%;
-}
-
-.hb-page--skills .hb-battery[data-level="NOVICE"] .hb-battery-segment:nth-child(-n+1),
-.hb-page--skills .hb-battery[data-level="INTERMEDIATE"] .hb-battery-segment:nth-child(-n+2),
-.hb-page--skills .hb-battery[data-level="ADVANCED"] .hb-battery-segment:nth-child(-n+3),
-.hb-page--skills .hb-battery[data-level="EXPERT"] .hb-battery-segment:nth-child(-n+4) {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-.hb-page--skills .hb-battery[data-hover-level] .hb-battery-segment {
-  background-color: var(--color-dot-inactive);
-}
-
-.hb-page--skills .hb-battery[data-hover-level="1"] .hb-battery-segment:nth-child(-n+1),
-.hb-page--skills .hb-battery[data-hover-level="2"] .hb-battery-segment:nth-child(-n+2),
-.hb-page--skills .hb-battery[data-hover-level="3"] .hb-battery-segment:nth-child(-n+3),
-.hb-page--skills .hb-battery[data-hover-level="4"] .hb-battery-segment:nth-child(-n+4) {
-  background-color: var(--color-primary-light);
+  padding: 4px 18px 4px 4px;
+  margin-right: 2px;
 }
 
 .hb-page--skills .hb-btn-basket {
@@ -1456,9 +1474,31 @@ body {
     padding: 10px 24px;
   }
 
+  .hb-nav-brand .hb-basket-menu,
+  .hb-nav-actions .hb-nav-icon-link {
+    display: flex;
+  }
+
+  .hb-nav-menu {
+    display: none;
+  }
+
+  .hb-nav-search {
+    max-width: 360px;
+  }
+
   .hb-page {
     max-width: 640px;
     padding: 32px 24px 56px;
+  }
+
+  /* .hb-page--search opts out of the generic page width — same specificity as .hb-page above,
+     so it must come after it here to win; a :not(.hb-page--search) on the rule above would look
+     tidier but raises its specificity past .hb-page--detail's override in the 1024px block below
+     and silently wins over it regardless of source order. */
+  .hb-page--search {
+    max-width: none;
+    padding: 0;
   }
 
   .hb-title {
@@ -1498,6 +1538,14 @@ body {
 
   .hb-page--search {
     min-height: calc(100vh - 65px);
+    padding: 0 40px;
+  }
+
+  /* ── Search: fill the viewport instead of a narrow bordered column.
+     1400px is a soft cap so lines don't stretch unreadably wide on ultra-wide monitors,
+     but on typical desktop/laptop windows the list fills essentially all available width. ── */
+  .hb-search-shell {
+    max-width: 1400px;
   }
 
   .hb-detail-title {

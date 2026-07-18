@@ -1,45 +1,6 @@
-// Shared behavior for skill-level "battery" pickers and basket-add buttons.
+// Shared behavior for skill-level dropdowns and basket-add buttons.
 // Used by skills-home.html (dynamically-rendered search results) and
 // skill-group.html (server-rendered forms) via document-level delegation.
-
-document.addEventListener('click', function (e) {
-  var segment = e.target.closest('.hb-battery-segment');
-  if (!segment) {
-    return;
-  }
-  var battery = segment.closest('.hb-battery');
-  var val = segment.getAttribute('data-level');
-  battery.setAttribute('data-level', val);
-  var form = battery.closest('.hb-skill-form');
-  if (form) {
-    var input = form.querySelector('.hb-level-select');
-    if (input) {
-      input.value = val;
-    }
-  }
-});
-
-document.addEventListener('mouseover', function (e) {
-  var segment = e.target.closest('.hb-battery-segment');
-  if (!segment) {
-    return;
-  }
-  var battery = segment.closest('.hb-battery');
-  var index = parseInt(segment.getAttribute('data-index'), 10);
-  battery.setAttribute('data-hover-level', index);
-});
-
-document.addEventListener('mouseout', function (e) {
-  var battery = e.target.closest('.hb-battery');
-  if (!battery) {
-    return;
-  }
-  var related = e.relatedTarget;
-  if (related && battery.contains(related)) {
-    return;
-  }
-  battery.removeAttribute('data-hover-level');
-});
 
 var _basketSkillIds = new Set();
 

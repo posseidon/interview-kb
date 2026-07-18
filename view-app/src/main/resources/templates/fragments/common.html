@@ -28,13 +28,13 @@
                 th:text="${basketSize}">0</span>
         </a>
         <button aria-expanded="false" aria-haspopup="true" aria-label="Basket actions"
-                class="hb-basket-menu-toggle" type="button">
+                class="hb-basket-menu-toggle" data-menu-toggle type="button">
           <svg fill="none" height="8" stroke="currentColor" stroke-linecap="round"
                stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 8 8" width="8">
             <polyline points="1 2.5 4 5.5 7 2.5"/>
           </svg>
         </button>
-        <div class="hb-basket-dropdown" hidden>
+        <div class="hb-basket-dropdown" data-menu-dropdown hidden>
           <form method="post" th:action="@{/basket/checkout}">
             <button class="hb-basket-dropdown-item" type="submit">Checkout</button>
           </form>
@@ -75,55 +75,83 @@
           <path d="M8.8 13c.2-1.8 1.4-3 2.7-3s2.4 1 2.6 2.6"/>
         </svg>
       </a>
+      <div class="hb-nav-menu">
+        <button aria-expanded="false" aria-haspopup="true" aria-label="More actions"
+                class="hb-nav-menu-toggle" data-menu-toggle type="button">
+          <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round"
+               stroke-width="1.5" viewBox="0 0 16 16" width="16">
+            <line x1="2" x2="14" y1="4.5" y2="4.5"/>
+            <line x1="2" x2="14" y1="8" y2="8"/>
+            <line x1="2" x2="14" y1="11.5" y2="11.5"/>
+          </svg>
+          <span class="hb-basket-badge hb-nav-menu-badge"
+                th:if="${basketSize} != null and ${basketSize} > 0"
+                th:text="${basketSize}">0</span>
+        </button>
+        <div class="hb-nav-menu-dropdown" data-menu-dropdown hidden>
+          <a class="hb-nav-menu-item" th:href="@{/skills}">Skills</a>
+          <a class="hb-nav-menu-item" th:href="@{/basket}">
+            Basket
+            <span class="hb-nav-menu-item-badge" th:if="${basketSize} != null and ${basketSize} > 0"
+                  th:text="${basketSize}">0</span>
+          </a>
+          <a class="hb-nav-menu-item" th:href="@{/interviews}">Interviews</a>
+        </div>
+      </div>
     </div>
   </nav>
   <script th:inline="none">
     (function () {
-      var menu = document.querySelector('.hb-basket-menu');
-      if (!menu || menu.dataset.bound) {
-        return;
-      }
-      menu.dataset.bound = 'true';
-      var toggle = menu.querySelector('.hb-basket-menu-toggle');
-      var dropdown = menu.querySelector('.hb-basket-dropdown');
-
-      function close() {
-        dropdown.hidden = true;
-        toggle.setAttribute('aria-expanded', 'false');
-      }
-
-      toggle.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var willOpen = dropdown.hidden;
-        dropdown.hidden = !willOpen;
-        toggle.setAttribute('aria-expanded', String(willOpen));
-      });
-
-      document.addEventListener('click', function (e) {
-        if (!menu.contains(e.target)) {
-          close();
+      function bindMenu(menu) {
+        if (!menu || menu.dataset.bound) {
+          return;
         }
-      });
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-          close();
+        menu.dataset.bound = 'true';
+        var toggle = menu.querySelector('[data-menu-toggle]');
+        var dropdown = menu.querySelector('[data-menu-dropdown]');
+        if (!toggle || !dropdown) {
+          return;
         }
-      });
+
+        function close() {
+          dropdown.hidden = true;
+          toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        toggle.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var willOpen = dropdown.hidden;
+          dropdown.hidden = !willOpen;
+          toggle.setAttribute('aria-expanded', String(willOpen));
+        });
+
+        document.addEventListener('click', function (e) {
+          if (!menu.contains(e.target)) {
+            close();
+          }
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') {
+            close();
+          }
+        });
+      }
+
+      bindMenu(document.querySelector('.hb-basket-menu'));
+      bindMenu(document.querySelector('.hb-nav-menu'));
     })();
   </script>
 </th:block>
 
 <th:block th:fragment="skillLevelPicker(skillId, level)">
   <input name="skillId" th:value="${skillId}" type="hidden"/>
-  <input class="hb-level-select" name="level" th:value="${level}" type="hidden"/>
   <div class="hb-skill-form-actions">
-    <div class="hb-battery" th:attr="data-level=${level}">
-      <div class="hb-battery-segment" data-index="1" data-level="NOVICE" title="Novice"></div>
-      <div class="hb-battery-segment" data-index="2" data-level="INTERMEDIATE"
-           title="Intermediate"></div>
-      <div class="hb-battery-segment" data-index="3" data-level="ADVANCED" title="Advanced"></div>
-      <div class="hb-battery-segment" data-index="4" data-level="EXPERT" title="Expert"></div>
-    </div>
+    <select aria-label="Skill level" class="hb-level-select" name="level">
+      <option th:selected="${level == 'NOVICE'}" value="NOVICE">Novice</option>
+      <option th:selected="${level == 'INTERMEDIATE'}" value="INTERMEDIATE">Intermediate</option>
+      <option th:selected="${level == 'ADVANCED'}" value="ADVANCED">Advanced</option>
+      <option th:selected="${level == 'EXPERT'}" value="EXPERT">Expert</option>
+    </select>
     <button aria-label="Add to basket" class="hb-btn-basket" title="Add to basket" type="submit">
       <svg class="hb-icon-basket-add" fill="none" height="18" stroke="currentColor"
            stroke-linecap="round"
