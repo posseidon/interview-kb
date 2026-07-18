@@ -42,10 +42,9 @@ public class IngestionController {
     return ResponseEntity.noContent().build();
   }
 
-  @PatchMapping(value = "/ingest/question/{questionId}/answers/{answerId}",
+  @PatchMapping(value = "/ingest/answers/{answerId}",
       consumes = MediaType.TEXT_PLAIN_VALUE)
-  public ResponseEntity<Void> overwriteAnswer(@PathVariable UUID questionId,
-      @PathVariable UUID answerId, @RequestBody String content) {
+  public ResponseEntity<Void> overwriteAnswer(@PathVariable UUID answerId, @RequestBody String content) {
     questionContentService.overwriteAnswer(answerId, content);
     return ResponseEntity.noContent().build();
   }

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import io.github.posseidon.knowledgebase.it.interview.dto.ingest.request.IngestRequest;
 import io.github.posseidon.knowledgebase.it.interview.dto.ingest.response.IngestResponse;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,7 @@ class IngestionControllerTest {
   @Test
   void delegatesToServiceAndReturnsOk() {
     IngestRequest request = new IngestRequest(List.of());
-    IngestResponse response = new IngestResponse(1, 0, 0);
+    IngestResponse response = new IngestResponse(0,1, 0, Collections.emptyList());
     when(ingestionService.ingest(request)).thenReturn(response);
 
     ResponseEntity<IngestResponse> result = controller.ingest(request);
@@ -61,10 +62,9 @@ class IngestionControllerTest {
 
   @Test
   void overwriteAnswerDelegatesAndReturnsNoContent() {
-    UUID questionId = UUID.randomUUID();
     UUID answerId = UUID.randomUUID();
 
-    ResponseEntity<Void> result = controller.overwriteAnswer(questionId, answerId, "updated");
+    ResponseEntity<Void> result = controller.overwriteAnswer(answerId, "updated");
 
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     verify(questionContentService).overwriteAnswer(answerId, "updated");
