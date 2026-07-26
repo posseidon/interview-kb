@@ -32,19 +32,19 @@ class HandbookViewControllerTest {
   private QuestionRepository questionRepository;
   private HandbookViewController controller;
 
+  private static Question question(String content, Skill... skills) {
+    Question q = new Question(content, "hash-" + content);
+    q.setId(UUID.randomUUID());
+    q.setSkills(Set.of(skills));
+    return q;
+  }
+
   @BeforeEach
   void setUp() {
     skillRepository = mock(SkillRepository.class);
     questionRepository = mock(QuestionRepository.class);
     controller = new HandbookViewController(skillRepository, questionRepository,
         new QuestionMapper());
-  }
-
-  private static Question question(String content, Skill... skills) {
-    Question q = new Question(content, "hash-" + content);
-    q.setId(UUID.randomUUID());
-    q.setSkills(Set.of(skills));
-    return q;
   }
 
   @Test

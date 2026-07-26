@@ -30,22 +30,23 @@
           <a class="hb-search-item" th:attr="data-skill=${group.skillName}"
              th:each="q : ${group.items}"
              th:href="@{/questions/{id}(id=${q.id})}">
-              <span class="hb-search-item-icon"
-                    th:classappend="${q.requiresImpl} ? 'hb-search-item-icon--coding' : 'hb-search-item-icon--theory'">
-                <svg fill="none" height="12" stroke="currentColor" stroke-linecap="round"
-                     stroke-linejoin="round" stroke-width="3" th:if="${q.requiresImpl}"
-                     viewBox="0 0 24 24" width="12">
-                  <polyline points="8 7 3 12 8 17"></polyline>
-                  <polyline points="16 7 21 12 16 17"></polyline>
-                </svg>
-                <svg fill="none" height="12" stroke="currentColor" stroke-linecap="round"
-                     stroke-linejoin="round" stroke-width="3" th:unless="${q.requiresImpl}"
-                     viewBox="0 0 24 24" width="12">
-                  <path d="M12 6 C12 5 11 4 8 4 H4 v14 h4 c3 0 4 1 4 2"></path>
-                  <path d="M12 6 C12 5 13 4 16 4 H20 v14 h-4 c-3 0 -4 1 -4 2"></path>
-                </svg>
-              </span>
-            <span class="hb-search-item-title" th:utext="${q.contentHtml}">Question title</span>
+            <div class="hb-question-icon">
+              <svg fill="none" height="12" stroke="currentColor" stroke-linecap="round"
+                   stroke-width="1.5" viewBox="0 0 12 12" width="12">
+                <path d="M4 2L8 6L4 10"/>
+              </svg>
+            </div>
+            <div class="hb-search-item-body">
+              <div class="hb-search-item-title">
+                <span class="hb-question-number" th:text="${q.number} + '.'">1.</span>
+                <span class="hb-search-item-content"
+                      th:utext="${q.contentHtml}">Question title</span>
+              </div>
+              <div class="hb-question-tag"
+                   th:text="${q.requiresImpl ? 'Coding' : 'Theoretical'}">
+                TYPE
+              </div>
+            </div>
           </a>
         </th:block>
       </div>

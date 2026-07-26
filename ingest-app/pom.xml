@@ -28,6 +28,10 @@
       <groupId>org.springframework.boot</groupId>
     </dependency>
     <dependency>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+      <groupId>io.micrometer</groupId>
+    </dependency>
+    <dependency>
       <artifactId>flyway-core</artifactId>
       <groupId>org.flywaydb</groupId>
     </dependency>
@@ -36,7 +40,7 @@
       <groupId>org.flywaydb</groupId>
     </dependency>
     <dependency>
-      <artifactId>spring-ai-starter-model-ollama</artifactId>
+      <artifactId>spring-ai-starter-model-azure-openai</artifactId>
       <groupId>org.springframework.ai</groupId>
     </dependency>
     <dependency>
@@ -69,7 +73,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <description>Ingestion, RAG and merge application — Ollama + pgvector</description>
+  <description>Ingestion, RAG and merge application — Azure OpenAI + pgvector</description>
   <modelVersion>4.0.0</modelVersion>
   <name>Interview KB – Ingest</name>
 

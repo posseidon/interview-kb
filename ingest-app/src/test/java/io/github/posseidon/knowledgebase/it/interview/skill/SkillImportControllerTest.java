@@ -3,7 +3,6 @@ package io.github.posseidon.knowledgebase.it.interview.skill;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import org.junit.jupiter.api.Test;

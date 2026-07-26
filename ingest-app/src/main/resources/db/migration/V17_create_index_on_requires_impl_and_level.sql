@@ -1,0 +1,1 @@
+CREATE INDEX idx_question_requires_impl_level ON question (requires_impl, level);

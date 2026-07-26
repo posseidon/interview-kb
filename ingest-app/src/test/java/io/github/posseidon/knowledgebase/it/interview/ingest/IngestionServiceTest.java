@@ -17,7 +17,7 @@ class IngestionServiceTest {
     IngestionService service = new IngestionService(questionUpsertService);
     IngestRequest request = new IngestRequest(List.of());
     when(questionUpsertService.upsert(request.questions()))
-        .thenReturn(new QuestionUpsertService.Result(List.of(), 2, 1, 3));
+        .thenReturn(new QuestionUpsertService.Result(List.of(), 2, 1, 3, List.of(), List.of()));
 
     IngestResponse response = service.ingest(request);
 

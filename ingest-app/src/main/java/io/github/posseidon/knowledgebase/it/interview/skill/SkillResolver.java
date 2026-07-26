@@ -24,9 +24,9 @@ public class SkillResolver {
   // Skills are owned by SkillIngestService's xlsx import; this only links to ones that
   // already exist by exact case-insensitive name — it never creates new skill rows.
   public Map<String, Skill> resolve(Set<String> names) {
-      if (names.isEmpty()) {
-          return Map.of();
-      }
+    if (names.isEmpty()) {
+      return Map.of();
+    }
 
     Set<String> lowerNames = names.stream().map(String::toLowerCase).collect(Collectors.toSet());
     Map<String, Skill> byLowerName = new HashMap<>();

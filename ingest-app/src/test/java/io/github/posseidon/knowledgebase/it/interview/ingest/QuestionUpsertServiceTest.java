@@ -5,14 +5,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anySet;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.github.posseidon.knowledgebase.it.interview.dedup.QuestionDeduplicationService;
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
 import io.github.posseidon.knowledgebase.it.interview.domain.skill.Skill;
+import io.github.posseidon.knowledgebase.it.interview.domain.skill.SkillLevel;
 import io.github.posseidon.knowledgebase.it.interview.dto.ingest.request.AnswerDto;
 import io.github.posseidon.knowledgebase.it.interview.dto.ingest.request.QuestionDto;
 import io.github.posseidon.knowledgebase.it.interview.repo.AnswerRepository;
@@ -34,7 +35,12 @@ class QuestionUpsertServiceTest {
   private QuestionRepository questionRepository;
   private AnswerRepository answerRepository;
   private VectorStore vectorStore;
+  private QuestionDeduplicationService deduplicationService;
   private QuestionUpsertService service;
+
+  private static QuestionDto dto(String externalId, String content, List<AnswerDto> answers) {
+    return new QuestionDto(externalId, content, false, "java", List.of(), answers, null);
+  }
 
   @BeforeEach
   void setUp() {
@@ -42,8 +48,9 @@ class QuestionUpsertServiceTest {
     questionRepository = mock(QuestionRepository.class);
     answerRepository = mock(AnswerRepository.class);
     vectorStore = mock(VectorStore.class);
+    deduplicationService = mock(QuestionDeduplicationService.class);
     service = new QuestionUpsertService(skillResolver, questionRepository, answerRepository,
-        vectorStore);
+        vectorStore, deduplicationService);
 
     when(skillResolver.resolve(anySet())).thenReturn(Map.of());
     when(questionRepository.indexByExternalId(anyCollection())).thenReturn(Map.of());
@@ -58,10 +65,6 @@ class QuestionUpsertServiceTest {
       });
       return questions;
     });
-  }
-
-  private static QuestionDto dto(String externalId, String content, List<AnswerDto> answers) {
-    return new QuestionDto(externalId, content, false, "java", List.of(), answers, null);
   }
 
   @Test
@@ -92,6 +95,25 @@ class QuestionUpsertServiceTest {
   }
 
   @Test
+  void newQuestionGetsLevelFromDto() {
+    QuestionDto dto = new QuestionDto("ext-1", "brand new content", false, "java", List.of(),
+        List.of(), SkillLevel.EXPERT);
+
+    QuestionUpsertService.Result result = service.upsert(List.of(dto));
+
+    assertThat(result.questions().get(0).getLevel()).isEqualTo(SkillLevel.EXPERT);
+  }
+
+  @Test
+  void newQuestionDefaultsToNoviceWhenDtoOmitsLevel() {
+    QuestionDto dto = dto("ext-1", "brand new content", List.of());
+
+    QuestionUpsertService.Result result = service.upsert(List.of(dto));
+
+    assertThat(result.questions().get(0).getLevel()).isEqualTo(SkillLevel.NOVICE);
+  }
+
+  @Test
   void matchesExistingByExternalIdAndSkipsVectorDeleteWhenContentUnchanged() {
     String content = "unchanged content";
     Question existing = new Question(content, ContentHash.sha256(content));
@@ -108,6 +130,25 @@ class QuestionUpsertServiceTest {
     assertThat(result.updated()).isEqualTo(1);
     verify(vectorStore, never()).delete(anyList());
     verify(vectorStore).add(any());
+  }
+
+  @Test
+  void reingestingAnExistingQuestionDoesNotClobberItsAlreadyClassifiedLevel() {
+    String content = "existing content";
+    Question existing = new Question(content, ContentHash.sha256(content));
+    existing.setId(UUID.randomUUID());
+    existing.setExternalId("ext-1");
+    existing.setLevel(SkillLevel.ADVANCED);
+    when(questionRepository.indexByExternalId(anyCollection()))
+        .thenReturn(Map.of("ext-1", existing));
+
+    // Re-ingested payload doesn't carry a level, so the DTO defaults it to NOVICE.
+    QuestionDto dto = dto("ext-1", content, List.of());
+
+    QuestionUpsertService.Result result = service.upsert(List.of(dto));
+
+    assertThat(result.updated()).isEqualTo(1);
+    assertThat(result.questions().get(0).getLevel()).isEqualTo(SkillLevel.ADVANCED);
   }
 
   @Test
@@ -198,5 +239,38 @@ class QuestionUpsertServiceTest {
 
     Question saved = result.questions().get(0);
     assertThat(saved.getSkills()).containsExactly(javaSkill);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void triggersDeduplicationForNewlyCreatedQuestionsOnly() {
+    Question existing = new Question("existing content", ContentHash.sha256("existing content"));
+    existing.setId(UUID.randomUUID());
+    existing.setExternalId("ext-existing");
+    when(questionRepository.indexByExternalId(anyCollection()))
+        .thenReturn(Map.of("ext-existing", existing));
+
+    QuestionDto updateDto = dto("ext-existing", "existing content", List.of());
+    QuestionDto newDto = dto("ext-new", "brand new content", List.of());
+
+    QuestionUpsertService.Result result = service.upsert(List.of(updateDto, newDto));
+
+    ArgumentCaptor<List<UUID>> idsCaptor = ArgumentCaptor.forClass(List.class);
+    verify(deduplicationService).deduplicateAsync(idsCaptor.capture());
+    assertThat(idsCaptor.getValue()).doesNotContain(existing.getId());
+    assertThat(result.createdQuestionIds()).isEqualTo(idsCaptor.getValue());
+  }
+
+  @Test
+  void doesNotTriggerDeduplicationWhenNoQuestionsAreCreated() {
+    Question existing = new Question("existing content", ContentHash.sha256("existing content"));
+    existing.setId(UUID.randomUUID());
+    existing.setExternalId("ext-existing");
+    when(questionRepository.indexByExternalId(anyCollection()))
+        .thenReturn(Map.of("ext-existing", existing));
+
+    service.upsert(List.of(dto("ext-existing", "existing content", List.of())));
+
+    verify(deduplicationService, never()).deduplicateAsync(any());
   }
 }

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head(${skill.name})}"></head>
+<body>
+<th:block th:replace="~{fragments/common :: header}"></th:block>
+<main class="hb-page hb-page--detail">
+  <a class="hb-back"
+     onclick="if(history.length&gt;1){history.back();return false;}"
+     th:href="@{/skills}">&lt; Back</a>
+
+  <div class="hb-detail-title" th:text="${skill.name}">Skill name</div>
+
+  <div class="hb-meta" th:if="${not #strings.isEmpty(skill.description)}"
+       th:text="${skill.description}">
+    Skill description
+  </div>
+
+  <!-- Client-side level switch: every level's criteria is already in the page (criteriaByLevel),
+       so picking a level just toggles which panel is visible — no request to the server. -->
+  <div class="hb-chip-row" id="hb-skill-level-picker">
+    <button class="hb-chip hb-chip--level" th:attr="data-level=${lvl}"
+            th:classappend="${lvlStat.first} ? '' : 'hb-chip--muted'"
+            th:each="lvl, lvlStat : ${levels}"
+            th:text="${lvl}" type="button">LEVEL
+    </button>
+  </div>
+
+  <div class="hb-skill-criteria-panel" th:attr="data-level=${entry.key}"
+       th:each="entry, entryStat : ${criteriaByLevel}" th:hidden="${not entryStat.first}">
+    <div class="hb-skill-criteria" th:if="${not #strings.isEmpty(entry.value)}"
+         th:text="${entry.value}">
+      Criteria for the selected level.
+    </div>
+    <p class="hb-empty" th:if="${#strings.isEmpty(entry.value)}">
+      No criteria defined for this level yet.
+    </p>
+  </div>
+
+  <div class="hb-quiz-section" th:if="${hasQuestions}">
+    <form class="hb-interview-form"
+          method="post"
+          th:action="@{/skills/{id}/interview-questions(id=${skill.id})}" th:attr="data-status-url=@{/skills/{id}/interview-questions/status(id=${skill.id})}">
+      <label class="hb-interview-field">
+        Seniority
+        <select name="seniority">
+          <option th:each="lvl, lvlStat : ${levels}" th:selected="${lvlStat.index == 1}"
+                  th:text="${lvl}" th:value="${lvl}">LEVEL
+          </option>
+        </select>
+      </label>
+      <label class="hb-interview-field">
+        Questions
+        <input max="10" min="3" name="count" type="number" value="5"/>
+      </label>
+      <button class="hb-btn hb-btn--primary" id="hb-interview-generate-btn" type="submit">
+        Generate Interview Questions
+      </button>
+    </form>
+  </div>
+
+  <p class="hb-empty" th:if="${!hasQuestions}">
+    No questions are tagged with this skill yet, so interview questions can't be generated.
+  </p>
+</main>
+
+<script th:inline="none">
+  (function () {
+    var chips = document.querySelectorAll('#hb-skill-level-picker .hb-chip');
+    var panels = document.querySelectorAll('.hb-skill-criteria-panel');
+    if (!chips.length) {
+      return;
+    }
+
+    chips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var level = chip.dataset.level;
+        chips.forEach(function (c) {
+          c.classList.toggle('hb-chip--muted', c.dataset.level !== level);
+        });
+        panels.forEach(function (p) {
+          p.hidden = p.dataset.level !== level;
+        });
+      });
+    });
+  })();
+</script>
+
+<th:block
+    th:replace="~{fragments/interview-overlay :: overlay(interviewData=${interviewSet})}"></th:block>
+</body>
+</html>

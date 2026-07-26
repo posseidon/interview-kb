@@ -31,7 +31,7 @@ class SkillControllerTest {
 
   @Test
   void homeReturnsHomeView() {
-    assertThat(controller.home(new ExtendedModelMap())).isEqualTo("skill/skills-home");
+    assertThat(controller.home()).isEqualTo("skill/skills-home");
   }
 
   @Test

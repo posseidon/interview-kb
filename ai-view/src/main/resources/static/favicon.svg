@@ -1,0 +1,11 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Orange rounded-square app background — distinct from view-app's blue, for tab pinning -->
+  <circle cx="12.5" cy="14.5" fill="#FF6B00" r="1.6"/>
+  <!-- Chat bubble -->
+  <circle cx="16" cy="14.5" fill="#FF6B00" r="1.6"/>
+  <circle cx="19.5" cy="14.5" fill="#FF6B00" r="1.6"/>
+  <!-- Typing-dots glyph -->
+  <path d="M11 21 L11 26 L16 21 Z" fill="white"/>
+  <rect fill="#FF6B00" height="32" rx="6" width="32"/>
+  <rect fill="white" height="13" rx="3" width="18" x="7" y="8"/>
+</svg>

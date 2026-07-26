@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.posseidon.knowledgebase.it.interview.domain.merge.MergeLog;
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Answer;
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
 import io.github.posseidon.knowledgebase.it.interview.repo.MergeLogRepository;
@@ -22,6 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -33,6 +35,12 @@ class MergeServiceTest {
   private VectorStore vectorStore;
   private MergeService mergeService;
 
+  private static Question question(String content, String hash) {
+    Question q = new Question(content, hash);
+    q.setId(UUID.randomUUID());
+    return q;
+  }
+
   @BeforeEach
   void setUp() {
     questionRepository = mock(QuestionRepository.class);
@@ -40,12 +48,6 @@ class MergeServiceTest {
     vectorStore = mock(VectorStore.class);
     mergeService = new MergeService(questionRepository, mergeLogRepository, vectorStore,
         new ObjectMapper());
-  }
-
-  private static Question question(String content, String hash) {
-    Question q = new Question(content, hash);
-    q.setId(UUID.randomUUID());
-    return q;
   }
 
   @Test
@@ -154,5 +156,35 @@ class MergeServiceTest {
     assertThatThrownBy(() -> mergeService.merge(target.getId(), sourceId))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Source question not found");
+  }
+
+  @Test
+  void mergeWithSimilarityAndNoteRecordsThemOnTheMergeLog() {
+    Question target = question("target content", "hash-t");
+    Question source = question("source content", "hash-s");
+    when(questionRepository.findById(target.getId())).thenReturn(Optional.of(target));
+    when(questionRepository.findById(source.getId())).thenReturn(Optional.of(source));
+
+    mergeService.merge(target.getId(), source.getId(), 0.97f, "auto-merged during ingestion");
+
+    ArgumentCaptor<MergeLog> logCaptor = ArgumentCaptor.forClass(MergeLog.class);
+    verify(mergeLogRepository).save(logCaptor.capture());
+    assertThat(logCaptor.getValue().getSimilarity()).isEqualTo(0.97f);
+    assertThat(logCaptor.getValue().getNote()).isEqualTo("auto-merged during ingestion");
+  }
+
+  @Test
+  void mergeWithoutSimilarityAndNoteLeavesThemNull() {
+    Question target = question("target content", "hash-t");
+    Question source = question("source content", "hash-s");
+    when(questionRepository.findById(target.getId())).thenReturn(Optional.of(target));
+    when(questionRepository.findById(source.getId())).thenReturn(Optional.of(source));
+
+    mergeService.merge(target.getId(), source.getId());
+
+    ArgumentCaptor<MergeLog> logCaptor = ArgumentCaptor.forClass(MergeLog.class);
+    verify(mergeLogRepository).save(logCaptor.capture());
+    assertThat(logCaptor.getValue().getSimilarity()).isNull();
+    assertThat(logCaptor.getValue().getNote()).isNull();
   }
 }

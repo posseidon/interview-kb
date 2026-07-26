@@ -32,14 +32,14 @@ public class SkillController {
   }
 
   private static String truncate(String text) {
-      if (text == null || text.length() <= MAX_LENGTH) {
-          return text;
-      }
+    if (text == null || text.length() <= MAX_LENGTH) {
+      return text;
+    }
     return text.substring(0, MAX_LENGTH).strip() + "…";
   }
 
   @GetMapping("/skills")
-  public String home(Model model) {
+  public String home() {
     return "skill/skills-home";
   }
 
@@ -48,18 +48,37 @@ public class SkillController {
     Skill current = skillRepository.findById(id)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
+    List<Skill> childSkills = skillRepository.findByParent_IdOrderByName(id);
     // current's own child count is exactly childSkills.size() — no extra query needed.
-    model.addAttribute("current", toView(current));
+    model.addAttribute("current", toView(current, childSkills.size()));
+
+    Map<UUID, Long> grandchildCounts = childCounts(childSkills);
+    model.addAttribute("children", childSkills.stream()
+        .map(c -> toView(c, grandchildCounts.getOrDefault(c.getId(), 0L)))
+        .toList());
+
     model.addAttribute("breadcrumb", buildBreadcrumb(current));
     model.addAttribute("levels", SkillLevel.values());
     return "skill/skill-group";
   }
 
-  private SkillNodeView toView(Skill skill) {
+  private SkillNodeView toView(Skill skill, long childCount) {
     return new SkillNodeView(skill.getId(), skill.getName(), skill.getDescription(),
-        skill.getPath(), skill.getPositionCount(), 0,
+        skill.getPath(), skill.getPositionCount(), childCount,
         skill.getNoviceCriteria(), skill.getIntermediateCriteria(),
         skill.getAdvancedCriteria(), skill.getExpertCriteria());
+  }
+
+  /**
+   * One batched COUNT ... GROUP BY instead of one query per skill.
+   */
+  private Map<UUID, Long> childCounts(List<Skill> skills) {
+    if (skills.isEmpty()) {
+      return Map.of();
+    }
+    List<UUID> ids = skills.stream().map(Skill::getId).toList();
+    return skillRepository.countChildrenByParentIds(ids).stream()
+        .collect(Collectors.toMap(row -> (UUID) row[0], row -> (Long) row[1]));
   }
 
   private List<BreadcrumbItem> buildBreadcrumb(Skill skill) {
@@ -74,9 +93,9 @@ public class SkillController {
   @GetMapping(value = "/skills/search", produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<SkillSearchResult> search(@RequestParam String q) {
-      if (q == null || q.isBlank()) {
-          return List.of();
-      }
+    if (q == null || q.isBlank()) {
+      return List.of();
+    }
     return skillRepository.search(q.strip(), 30).stream()
         .map(s -> new SkillSearchResult(s.getId(), s.getName(),
             truncate(s.getDescription()), s.getPositionCount()))

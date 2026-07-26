@@ -5,6 +5,7 @@ import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
 import io.github.posseidon.knowledgebase.it.interview.repo.AnswerRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
 import io.github.posseidon.knowledgebase.it.interview.util.ContentHash;
+import io.github.posseidon.knowledgebase.it.interview.vectorstore.QuestionDocuments;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;

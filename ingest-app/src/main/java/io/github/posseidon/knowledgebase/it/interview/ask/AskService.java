@@ -4,14 +4,13 @@ import io.github.posseidon.knowledgebase.it.interview.dto.ask.AskResponse;
 import io.github.posseidon.knowledgebase.it.interview.dto.question.QuestionView;
 import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
 import io.github.posseidon.knowledgebase.it.interview.util.QuestionMapper;
+import io.github.posseidon.knowledgebase.it.interview.util.VectorStoreIds;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -20,8 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AskService {
-
-  private static final Logger log = LoggerFactory.getLogger(AskService.class);
 
   private final VectorStore vectorStore;
   private final QuestionRepository questionRepository;
@@ -42,13 +39,10 @@ public class AskService {
     Map<String, Double> scoreById = new HashMap<>();
     List<UUID> questionIds = new ArrayList<>();
     for (Document doc : results) {
-      try {
-        UUID id = UUID.fromString(doc.getId());
+      VectorStoreIds.parse(doc.getId()).ifPresent(id -> {
         questionIds.add(id);
         scoreById.put(doc.getId(), doc.getScore());
-      } catch (IllegalArgumentException e) {
-        log.warn("Skipping vector-store document with non-UUID id: {}", doc.getId());
-      }
+      });
     }
 
     List<QuestionView> sources = questionRepository.findAllById(questionIds).stream()

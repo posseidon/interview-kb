@@ -1,4 +1,4 @@
-package io.github.posseidon.knowledgebase.it.interview.ingest;
+package io.github.posseidon.knowledgebase.it.interview.vectorstore;
 
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
 import io.github.posseidon.knowledgebase.it.interview.domain.skill.Skill;

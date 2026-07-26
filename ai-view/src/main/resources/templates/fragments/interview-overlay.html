@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* One-question-at-a-time interview-question browser: a non-blocking generation toast plus a
+     modal overlay opened once generation finishes. Shared by any page with a
+     "Generate Interview Questions" form — the form itself (action URL, hidden fields) stays on
+     the calling page; it just needs button id="hb-interview-generate-btn" inside an element with
+     a data-status-url attribute, e.g. class="hb-interview-form". `interviewData` is the raw
+     List<InterviewQuestion> for the current session/topic (or null if none generated yet). */-->
+<th:block th:fragment="overlay(interviewData)">
+
+  <div class="hb-interview-progress-toast" hidden id="hb-interview-progress-toast">
+    <div class="hb-interview-progress-label" id="hb-interview-progress-label">Thinking…</div>
+    <div class="hb-interview-progress-bar">
+      <div class="hb-interview-progress-bar-fill"></div>
+    </div>
+  </div>
+
+  <div class="hb-interview-overlay" hidden id="hb-interview-overlay">
+    <div class="hb-interview-overlay-backdrop" id="hb-interview-overlay-backdrop"></div>
+    <div class="hb-interview-modal">
+      <button aria-label="Close interview questions" class="hb-interview-close"
+              id="hb-interview-close-btn" type="button">&times;
+      </button>
+      <div class="hb-interview-widget" id="hb-interview-widget">
+        <div class="hb-interview-position" id="hb-interview-position"></div>
+        <div class="hb-interview-type" id="hb-interview-type-badge"></div>
+        <div class="hb-interview-question" id="hb-interview-question-text"></div>
+        <div class="hb-interview-sources" hidden id="hb-interview-sources"></div>
+        <div class="hb-interview-nav">
+          <button aria-label="View follow-up question"
+                  class="hb-interview-nav-btn hb-interview-nav-btn--enter"
+                  id="hb-interview-enter-btn" type="button">&#8627;
+          </button>
+          <button aria-label="Next question"
+                  class="hb-interview-nav-btn hb-interview-nav-btn--next"
+                  id="hb-interview-next-btn" type="button">&#8594;
+          </button>
+        </div>
+        <button class="hb-btn hb-btn--primary" hidden id="hb-interview-export-btn" type="button">
+          Export as JSON
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    var hbInterviewData = /*[[${interviewData}]]*/ null;
+    /*]]>*/
+  </script>
+
+  <script th:inline="none">
+    (function () {
+      var toastEl = document.getElementById('hb-interview-progress-toast');
+      var toastLabelEl = document.getElementById('hb-interview-progress-label');
+      var generateBtn = document.getElementById('hb-interview-generate-btn');
+      if (!toastEl || !generateBtn) {
+        return;
+      }
+      var statusUrl = generateBtn.closest('.hb-interview-form').dataset.statusUrl;
+      var POLL_INTERVAL_MS = 700;
+
+      function showPending(step) {
+        generateBtn.disabled = true;
+        toastLabelEl.textContent = step || 'Thinking…';
+        toastEl.hidden = false;
+      }
+
+      function poll() {
+        fetch(statusUrl, {cache: 'no-store'})
+        .then(function (res) {
+          return res.json();
+        })
+        .then(function (data) {
+          if (data.pending) {
+            showPending(data.step);
+            setTimeout(poll, POLL_INTERVAL_MS);
+          } else {
+            window.location.reload();
+          }
+        });
+      }
+
+      fetch(statusUrl, {cache: 'no-store'})
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (data) {
+        if (data.pending) {
+          showPending(data.step);
+          setTimeout(poll, POLL_INTERVAL_MS);
+        }
+      });
+    })();
+
+    /* One-question-at-a-time interview-question browser, shown in a modal overlay that dims the
+       page behind it until the user closes it. hbInterviewData is the raw
+       List<InterviewQuestion>: each entry has question/type/sources/followUps.
+
+       Navigation is a small tree walk: "next" (→) always jumps to the next TOP-LEVEL question,
+       skipping any of the current question's remaining follow-ups; "enter" (↳) steps one at a
+       time into the current question's follow-ups. Once there is no next question AND no next
+       follow-up left, both nav buttons hide and an Export button appears to copy the full JSON to
+       the clipboard. */
+    (function () {
+      if (!hbInterviewData || !hbInterviewData.length) {
+        return;
+      }
+      var overlay = document.getElementById('hb-interview-overlay');
+      var backdrop = document.getElementById('hb-interview-overlay-backdrop');
+      var closeBtn = document.getElementById('hb-interview-close-btn');
+      var positionEl = document.getElementById('hb-interview-position');
+      var typeBadgeEl = document.getElementById('hb-interview-type-badge');
+      var questionTextEl = document.getElementById('hb-interview-question-text');
+      var sourcesEl = document.getElementById('hb-interview-sources');
+      var enterBtn = document.getElementById('hb-interview-enter-btn');
+      var nextBtn = document.getElementById('hb-interview-next-btn');
+      var exportBtn = document.getElementById('hb-interview-export-btn');
+
+      var qIndex = 0;
+      var fIndex = -1;   // -1 = viewing the main question; >=0 = viewing that follow-up index
+
+      function sourceUrl(id) {
+        return window.location.origin + '/questions/' + id;
+      }
+
+      function openOverlay() {
+        overlay.hidden = false;
+        document.body.classList.add('hb-quiz-lock-scroll');
+      }
+
+      function closeOverlay() {
+        overlay.hidden = true;
+        document.body.classList.remove('hb-quiz-lock-scroll');
+      }
+
+      closeBtn.addEventListener('click', closeOverlay);
+      backdrop.addEventListener('click', closeOverlay);
+
+      function renderSources(sources) {
+        sourcesEl.innerHTML = '';
+        if (!sources || !sources.length) {
+          sourcesEl.hidden = true;
+          return;
+        }
+        sourcesEl.hidden = false;
+        var label = document.createElement('span');
+        label.className = 'hb-interview-sources-label';
+        label.textContent = 'Sources:';
+        sourcesEl.appendChild(label);
+        sources.forEach(function (id, index) {
+          var link = document.createElement('a');
+          link.className = 'hb-interview-source-link';
+          link.href = '/questions/' + id;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.title = id;
+          link.textContent = 'Source ' + (index + 1);
+          sourcesEl.appendChild(link);
+        });
+      }
+
+      function render() {
+        var q = hbInterviewData[qIndex];
+        var followUps = q.followUps || [];
+
+        if (fIndex === -1) {
+          positionEl.textContent = '#' + (qIndex + 1);
+          typeBadgeEl.hidden = false;
+          typeBadgeEl.textContent = q.type;
+          questionTextEl.textContent = q.question;
+        } else {
+          positionEl.textContent = '#' + (qIndex + 1) + '.' + (fIndex + 1);
+          typeBadgeEl.hidden = true;
+          questionTextEl.textContent = followUps[fIndex];
+        }
+        renderSources(q.sources);   // same source material grounds the question and its follow-ups
+
+        var noMoreQuestions = qIndex === hbInterviewData.length - 1;
+        var noMoreFollowUps = fIndex + 1 >= followUps.length;
+        nextBtn.hidden = noMoreQuestions;
+        enterBtn.hidden = noMoreFollowUps;
+        exportBtn.hidden = !(noMoreQuestions && noMoreFollowUps);
+      }
+
+      nextBtn.addEventListener('click', function () {
+        qIndex++;
+        fIndex = -1;
+        render();
+      });
+
+      enterBtn.addEventListener('click', function () {
+        fIndex++;
+        render();
+      });
+
+      exportBtn.addEventListener('click', function () {
+        var exportData = hbInterviewData.map(function (q) {
+          return {
+            question: q.question,
+            type: q.type,
+            sources: (q.sources || []).map(sourceUrl),
+            followUps: q.followUps
+          };
+        });
+        var json = JSON.stringify(exportData, null, 2);
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(json).catch(function () {
+          });
+        }
+        exportBtn.textContent = 'Copied!';
+        setTimeout(function () {
+          exportBtn.textContent = 'Export as JSON';
+        }, 1200);
+      });
+
+      render();
+      openOverlay();
+    })();
+  </script>
+</th:block>
+</body>
+</html>

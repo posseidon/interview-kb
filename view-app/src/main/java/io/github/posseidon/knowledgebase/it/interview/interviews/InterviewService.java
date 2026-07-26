@@ -34,6 +34,14 @@ public class InterviewService {
     this.questionMapper = questionMapper;
   }
 
+  private static DecisionDisplay decisionDisplay(Decision d) {
+    return switch (d) {
+      case NO_HIRE -> new DecisionDisplay("no-hire", "NO HIRE");
+      case MAYBE -> new DecisionDisplay("maybe", "MAYBE");
+      case GOOD_CANDIDATE -> new DecisionDisplay("good", "GOOD CANDIDATE");
+    };
+  }
+
   @Transactional(readOnly = true)
   public List<InterviewView> findAll() {
     return interviewRepository.findAllByOrderByDateAsc().stream()
@@ -60,13 +68,14 @@ public class InterviewService {
         .map(e -> new SkillGroup(e.getKey(), e.getValue()))
         .toList();
 
+    DecisionDisplay display = decisionDisplay(iv.getDecision());
     return new InterviewView(
         iv.getId(),
         iv.getProjectCode(),
         iv.getDate().format(DATE_FMT),
         iv.getDecision(),
-        decisionCssClass(iv.getDecision()),
-        decisionLabel(iv.getDecision()),
+        display.cssClass(),
+        display.label(),
         Markdown.toHtml(iv.getFeedback()),
         Markdown.toHtml(iv.getUpskillingPlan()),
         Markdown.toSnippet(iv.getFeedback(), 160),
@@ -75,24 +84,12 @@ public class InterviewService {
     );
   }
 
-  private String decisionCssClass(Decision d) {
-    return switch (d) {
-      case NO_HIRE -> "no-hire";
-      case MAYBE -> "maybe";
-      case GOOD_CANDIDATE -> "good";
-    };
-  }
-
-  private String decisionLabel(Decision d) {
-    return switch (d) {
-      case NO_HIRE -> "NO HIRE";
-      case MAYBE -> "MAYBE";
-      case GOOD_CANDIDATE -> "GOOD CANDIDATE";
-    };
-  }
-
   @Transactional(readOnly = true)
   public Optional<InterviewView> findById(UUID id) {
     return interviewRepository.findById(id).map(this::toView);
+  }
+
+  private record DecisionDisplay(String cssClass, String label) {
+
   }
 }

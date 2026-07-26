@@ -9,7 +9,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,6 +19,14 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, UUID> {
+
+  /**
+   * Default paging/ranking for a keyword search: most-frequently-asked first, capped at 50 — shared
+   * by every {@link #findFilteredBySkill} caller.
+   */
+  static Pageable defaultSearchPage() {
+    return PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "frequency"));
+  }
 
   Optional<Question> findByExternalId(String externalId);
 
@@ -82,4 +92,28 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
       """, nativeQuery = true)
   List<Question> findBySkillIdAndLevel(@Param("skillId") UUID skillId,
       @Param("level") String level);
+
+  /**
+   * Paged over every question with {@code skills} eagerly fetched, ordered by id for stable
+   * pagination across batches — so a caller (e.g. the vector-store re-embedding job) can build a
+   * {@link org.springframework.ai.document.Document} per row without needing an open Hibernate
+   * session for the otherwise-lazy {@code skills} collection.
+   */
+  @Query("""
+      SELECT DISTINCT q FROM Question q
+      LEFT JOIN FETCH q.skills
+      ORDER BY q.id
+      """)
+  Page<Question> findAllWithSkills(Pageable pageable);
+
+  /**
+   * Single-row counterpart to {@link #findAllWithSkills}, for callers (e.g. auto-merge-on-ingest)
+   * that need one question's {@code skills} eagerly fetched without paging the whole table.
+   */
+  @Query("""
+      SELECT q FROM Question q
+      LEFT JOIN FETCH q.skills
+      WHERE q.id = :id
+      """)
+  Optional<Question> findByIdWithSkills(@Param("id") UUID id);
 }

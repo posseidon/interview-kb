@@ -29,6 +29,12 @@ class InterviewIngestServiceTest {
   private QuestionUpsertService questionUpsertService;
   private InterviewIngestService service;
 
+  private static Question question() {
+    Question q = new Question("content", "hash");
+    q.setId(UUID.randomUUID());
+    return q;
+  }
+
   @BeforeEach
   void setUp() {
     interviewRepository = mock(InterviewRepository.class);
@@ -44,18 +50,12 @@ class InterviewIngestServiceTest {
     });
   }
 
-  private static Question question() {
-    Question q = new Question("content", "hash");
-    q.setId(UUID.randomUUID());
-    return q;
-  }
-
   @Test
   void ingestCombinesInlineAndReferencedQuestions() {
     Question inline = question();
     Question referenced = question();
     when(questionUpsertService.upsert(any()))
-        .thenReturn(new QuestionUpsertService.Result(List.of(inline), 1, 0, 0));
+        .thenReturn(new QuestionUpsertService.Result(List.of(inline), 1, 0, 0, List.of(), List.of()));
     when(questionRepository.findAllByExternalIdIn(anyCollection()))
         .thenReturn(List.of(referenced));
 
@@ -71,7 +71,7 @@ class InterviewIngestServiceTest {
   @Test
   void ingestSkipsReferencedLookupWhenNoQuestionIds() {
     when(questionUpsertService.upsert(any()))
-        .thenReturn(new QuestionUpsertService.Result(List.of(), 0, 0, 0));
+        .thenReturn(new QuestionUpsertService.Result(List.of(), 0, 0, 0, List.of(), List.of()));
 
     InterviewDto dto = new InterviewDto("PROJ-1", LocalDate.now(), "feedback", "plan",
         Decision.MAYBE, List.of(), List.of());
@@ -90,7 +90,7 @@ class InterviewIngestServiceTest {
     when(interviewRepository.findByProjectCode("PROJ-1")).thenReturn(Optional.of(interview));
     Question newQuestion = question();
     when(questionUpsertService.upsert(any()))
-        .thenReturn(new QuestionUpsertService.Result(List.of(newQuestion), 1, 0, 0));
+        .thenReturn(new QuestionUpsertService.Result(List.of(newQuestion), 1, 0, 0, List.of(), List.of()));
 
     InterviewDto dto = new InterviewDto("PROJ-1", LocalDate.now(), "feedback", "plan",
         Decision.NO_HIRE, List.of(), List.of());

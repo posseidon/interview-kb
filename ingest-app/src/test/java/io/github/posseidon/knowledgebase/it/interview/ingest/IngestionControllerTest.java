@@ -31,7 +31,7 @@ class IngestionControllerTest {
   @Test
   void delegatesToServiceAndReturnsOk() {
     IngestRequest request = new IngestRequest(List.of());
-    IngestResponse response = new IngestResponse(0,1, 0, Collections.emptyList());
+    IngestResponse response = new IngestResponse(0, 1, 0, Collections.emptyList());
     when(ingestionService.ingest(request)).thenReturn(response);
 
     ResponseEntity<IngestResponse> result = controller.ingest(request);

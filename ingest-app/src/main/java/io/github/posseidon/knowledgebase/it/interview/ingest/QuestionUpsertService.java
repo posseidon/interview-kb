@@ -3,12 +3,14 @@ package io.github.posseidon.knowledgebase.it.interview.ingest;
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Answer;
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
 import io.github.posseidon.knowledgebase.it.interview.domain.skill.Skill;
+import io.github.posseidon.knowledgebase.it.interview.dedup.QuestionDeduplicationService;
 import io.github.posseidon.knowledgebase.it.interview.dto.ingest.request.AnswerDto;
 import io.github.posseidon.knowledgebase.it.interview.dto.ingest.request.QuestionDto;
 import io.github.posseidon.knowledgebase.it.interview.repo.AnswerRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
 import io.github.posseidon.knowledgebase.it.interview.skill.SkillResolver;
 import io.github.posseidon.knowledgebase.it.interview.util.ContentHash;
+import io.github.posseidon.knowledgebase.it.interview.vectorstore.QuestionDocuments;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,6 +23,8 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Single upsert-by-externalId/contentHash implementation shared by every ingestion entry point
@@ -34,15 +38,18 @@ public class QuestionUpsertService {
   private final QuestionRepository questionRepository;
   private final AnswerRepository answerRepository;
   private final VectorStore vectorStore;
+  private final QuestionDeduplicationService deduplicationService;
 
   public QuestionUpsertService(SkillResolver skillResolver,
       QuestionRepository questionRepository,
       AnswerRepository answerRepository,
-      VectorStore vectorStore) {
+      VectorStore vectorStore,
+      QuestionDeduplicationService deduplicationService) {
     this.skillResolver = skillResolver;
     this.questionRepository = questionRepository;
     this.answerRepository = answerRepository;
     this.vectorStore = vectorStore;
+    this.deduplicationService = deduplicationService;
   }
 
   @Transactional
@@ -65,8 +72,40 @@ public class QuestionUpsertService {
     syncVectorStore(saved);
 
     int created = (int) resolved.stream().filter(ResolvedQuestion::created).count();
+    List<UUID> createdQuestionIds = resolved.stream()
+        .filter(ResolvedQuestion::created)
+        .map(r -> r.question().getId())
+        .toList();
+    // Only genuinely new rows get auto-merge-checked: a question already matched by
+    // externalId/contentHash is already deduplicated by the checks above, so re-running a
+    // semantic-similarity search against it would be redundant.
+    triggerDeduplicationAfterCommit(createdQuestionIds);
 
-    return new Result(saved, created, resolved.size() - created, answersAdded, saved.stream().map(Question::getId).toList());
+    return new Result(saved, created, resolved.size() - created, answersAdded,
+        saved.stream().map(Question::getId).toList(), createdQuestionIds);
+  }
+
+  /**
+   * This method (or an outer caller, e.g. {@code InterviewIngestService}, which is also
+   * {@code @Transactional} and so shares the same physical transaction) hasn't committed yet when
+   * {@code upsert} returns — the surrounding {@code @Transactional} proxy commits afterward. A new
+   * question queried from a fresh connection on the dedup background thread wouldn't be visible
+   * until then, so the actual kick-off is deferred to {@code afterCommit}, not fired inline here.
+   */
+  private void triggerDeduplicationAfterCommit(List<UUID> createdQuestionIds) {
+    if (createdQuestionIds.isEmpty()) {
+      return;
+    }
+    if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+      deduplicationService.deduplicateAsync(createdQuestionIds);
+      return;
+    }
+    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+      @Override
+      public void afterCommit() {
+        deduplicationService.deduplicateAsync(createdQuestionIds);
+      }
+    });
   }
 
   private Map<String, Skill> resolveSkills(List<QuestionDto> dtos) {
@@ -103,6 +142,13 @@ public class QuestionUpsertService {
       Map<String, Skill> skillByName) {
     ResolvedQuestion match = findOrCreate(dto, byExternalId, byContentHash);
     applyDtoFields(match.question(), dto, skillByName);
+    if (match.created()) {
+      // Only set on creation: an existing question's level may already have been set by the
+      // skill-level classification job or auto-merge (see classification/dedup packages) — a
+      // re-ingest of the same externalId/content shouldn't clobber that back to the DTO's
+      // NOVICE default just because the source payload doesn't carry a level.
+      match.question().setLevel(dto.level());
+    }
     return match;
   }
 
@@ -212,10 +258,11 @@ public class QuestionUpsertService {
 
   }
 
-  public record Result(List<Question> questions, int created, int updated, int answersAdded, List<UUID> questionIds) {
+  public record Result(List<Question> questions, int created, int updated, int answersAdded,
+                       List<UUID> questionIds, List<UUID> createdQuestionIds) {
 
     static Result empty() {
-      return new Result(List.of(), 0, 0, 0, Collections.emptyList());
+      return new Result(List.of(), 0, 0, 0, Collections.emptyList(), Collections.emptyList());
     }
   }
 }

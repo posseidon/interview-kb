@@ -10,6 +10,11 @@
       rel="stylesheet"/>
   <link rel="icon" th:href="@{/favicon.svg}" type="image/svg+xml"/>
   <link rel="stylesheet" th:href="@{/css/handbook.css}"/>
+  <!-- Syntax highlighting for fenced code blocks in rendered markdown (question/answer content).
+       No stock theme stylesheet loaded — token colors are hand-styled in handbook.css to match
+       the existing dark .hb-answer-rendered pre background. -->
+  <script defer onload="hljs.highlightAll()"
+          src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body>
 <th:block th:fragment="nav">

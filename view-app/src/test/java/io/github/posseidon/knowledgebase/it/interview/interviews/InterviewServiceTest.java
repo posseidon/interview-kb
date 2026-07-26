@@ -24,12 +24,6 @@ class InterviewServiceTest {
   private InterviewRepository interviewRepository;
   private InterviewService service;
 
-  @BeforeEach
-  void setUp() {
-    interviewRepository = mock(InterviewRepository.class);
-    service = new InterviewService(interviewRepository, new QuestionMapper());
-  }
-
   private static Interview interview(Decision decision) {
     Interview iv = new Interview();
     iv.setId(UUID.randomUUID());
@@ -39,6 +33,12 @@ class InterviewServiceTest {
     iv.setUpskillingPlan("plan");
     iv.setDecision(decision);
     return iv;
+  }
+
+  @BeforeEach
+  void setUp() {
+    interviewRepository = mock(InterviewRepository.class);
+    service = new InterviewService(interviewRepository, new QuestionMapper());
   }
 
   @Test

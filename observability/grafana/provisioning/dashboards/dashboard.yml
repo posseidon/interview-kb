@@ -1,0 +1,9 @@
+apiVersion: 1
+
+providers:
+  - name: ingest-jobs
+    folder: ""
+    type: file
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards

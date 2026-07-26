@@ -7,8 +7,7 @@ import io.github.posseidon.knowledgebase.it.interview.util.QuestionScope;
 import java.util.List;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +33,7 @@ public class QuestionSearchMcpTool {
       @ToolParam(required = false,
           description = "Optional scope filter: 'coding' for implementation questions, "
               + "'theory' for non-implementation questions. Omit for both.") String scope) {
-    PageRequest page = PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "frequency"));
+    Pageable page = QuestionRepository.defaultSearchPage();
     List<QuestionView> results = questionRepository.findFilteredBySkill(null, query, page)
         .stream().map(questionMapper::toView).toList();
 

@@ -544,35 +544,28 @@ body {
   background: var(--color-surface-muted);
 }
 
-.hb-search-item-icon {
-  width: 21px;
-  height: 21px;
-  margin-top: 2px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--color-background);
-}
-
-.hb-search-item-icon--coding {
-  background: var(--color-text);
-}
-
-.hb-search-item-icon--theory {
-  background: var(--color-primary);
+.hb-search-item-body {
+  flex: 1;
+  min-width: 0;
 }
 
 /* Question content is stored as markdown and rendered to HTML — height grows with content
    instead of truncating to one line. */
 .hb-search-item-title {
-  flex: 1;
+  display: flex;
+  align-items: baseline;
   min-width: 0;
+  gap: 6px;
   font-family: var(--font-body);
   font-size: 18px;
   line-height: 1.5;
   color: var(--color-text);
+  margin-bottom: 3px;
+}
+
+.hb-search-item-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .hb-search-item-title p {
@@ -581,6 +574,23 @@ body {
 
 .hb-search-item-title p + p {
   margin-top: 10px;
+}
+
+/* Content that happens to start with "N. " (e.g. "6. Synchronized blocks...") is parsed by
+   CommonMark as an ordered list, not a plain paragraph — without these resets the browser's
+   default ol/li margin and 40px indent throw the row out of alignment with plain-text items. */
+.hb-search-item-title ol,
+.hb-search-item-title ul {
+  margin: 0;
+  padding-left: 1.3em;
+}
+
+.hb-search-item-title li {
+  margin: 0;
+}
+
+.hb-search-item-title li + li {
+  margin-top: 4px;
 }
 
 .hb-search-item-title strong {
@@ -733,6 +743,13 @@ body {
   font-size: 17px;
   color: var(--color-text);
   margin-bottom: 3px;
+}
+
+.hb-question-number {
+  flex-shrink: 0;
+  font-family: var(--font-heading);
+  color: var(--color-muted);
+  margin-right: 4px;
 }
 
 .hb-question-tag {
@@ -953,6 +970,75 @@ body {
   font-size: inherit;
 }
 
+/* ─── Syntax highlighting (highlight.js token classes) ──────────────
+   No stock hljs theme is loaded — .hljs itself stays transparent so the existing dark
+   .hb-answer-rendered pre background shows through; only token colors are set here, tuned to
+   sit against that dark background and echo the app's --color-primary accent. */
+.hljs {
+  background: none;
+  color: inherit;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #8a8a8a;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-type,
+.hljs-doctag {
+  color: var(--color-primary-light);
+}
+
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-number,
+.hljs-meta {
+  color: #f2b56d;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-title.function_ {
+  color: #7ec699;
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-params {
+  color: #e0b3ff;
+}
+
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-name,
+.hljs-tag {
+  color: #66d9ef;
+}
+
+.hljs-deletion {
+  color: #ff6b6b;
+}
+
+.hljs-addition {
+  color: #7ec699;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 700;
+}
+
 /* GFM tables — scroll horizontally instead of blowing out page width on narrow screens */
 .hb-answer-rendered table {
   display: block;
@@ -1077,9 +1163,7 @@ body {
   -webkit-appearance: none;
   appearance: none;
   border: none;
-  background: transparent
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23121212' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
-    no-repeat right 2px center;
+  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23121212' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 2px center;
   background-size: 9px 6px;
   font-family: var(--font-heading);
   font-size: 12px;

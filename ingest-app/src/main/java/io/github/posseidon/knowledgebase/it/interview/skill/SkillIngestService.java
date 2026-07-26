@@ -55,7 +55,13 @@ class SkillIngestService {
    * before this background import finishes.
    */
   void importFromXlsxAsync(byte[] content) {
-    new Thread(() -> importFromXlsx(content)).start();
+    new Thread(() -> {
+      try {
+        importFromXlsx(content);
+      } catch (RuntimeException e) {
+        log.error("Skill import failed", e);
+      }
+    }).start();
   }
 
   /**

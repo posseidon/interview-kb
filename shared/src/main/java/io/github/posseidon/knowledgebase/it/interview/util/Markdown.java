@@ -18,16 +18,16 @@ public final class Markdown {
   }
 
   public static String toHtml(String markdown) {
-      if (markdown == null || markdown.isBlank()) {
-          return "";
-      }
+    if (markdown == null || markdown.isBlank()) {
+      return "";
+    }
     return HTML.render(PARSER.parse(markdown));
   }
 
   public static String toSnippet(String markdown, int maxLen) {
-      if (markdown == null || markdown.isBlank()) {
-          return "";
-      }
+    if (markdown == null || markdown.isBlank()) {
+      return "";
+    }
     String plain = TEXT.render(PARSER.parse(markdown)).strip();
     return plain.length() <= maxLen ? plain : plain.substring(0, maxLen - 1) + "…";
   }

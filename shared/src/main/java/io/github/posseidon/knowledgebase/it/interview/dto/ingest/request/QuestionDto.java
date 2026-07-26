@@ -16,8 +16,8 @@ public record QuestionDto(
 ) {
 
   public QuestionDto {
-      if (level == null) {
-          level = SkillLevel.NOVICE;
-      }
+    if (level == null) {
+      level = SkillLevel.NOVICE;
+    }
   }
 }

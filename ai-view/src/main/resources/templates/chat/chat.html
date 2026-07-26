@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('AI Assistant')}"></head>
+<body>
+<th:block th:replace="~{fragments/common :: header}"></th:block>
+
+<main class="hb-chat-page">
+  <div class="hb-chat-shell">
+
+    <div class="hb-chat-messages" id="hb-chat-messages">
+      <div class="hb-chat-empty" th:if="${#lists.isEmpty(messages)}">
+        Ask me to browse questions by topic, answer something from the knowledge base, match a
+        job description, or build a quiz — single skill or a whole series.
+      </div>
+      <div
+          th:class="${msg.isUser()} ? 'hb-chat-msg hb-chat-msg--user' : 'hb-chat-msg hb-chat-msg--assistant'"
+          th:each="msg : ${messages}">
+        <div class="hb-chat-msg-role" th:text="${msg.isUser()} ? 'You' : 'Assistant'">Role</div>
+        <div class="hb-chat-msg-body" th:if="${msg.isUser()}" th:text="${msg.content}">Message
+        </div>
+        <div class="hb-chat-msg-body hb-msg-prose" th:if="${!msg.isUser()}"
+             th:utext="${msg.contentHtml}">Message
+        </div>
+      </div>
+    </div>
+
+    <div class="hb-chat-status" hidden id="hb-chat-status">Thinking…</div>
+
+    <form class="hb-chat-composer" method="post" th:action="@{/chat/messages}">
+      <input autocomplete="off" autofocus class="hb-chat-input" name="message"
+             placeholder="Ask about a topic, paste a job description, request a quiz…"
+             type="text"/>
+      <button class="hb-chat-send-btn" type="submit">Send</button>
+    </form>
+
+  </div>
+</main>
+
+<script th:inline="none">
+  (function () {
+    var messages = document.getElementById('hb-chat-messages');
+    if (messages) {
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    var statusEl = document.getElementById('hb-chat-status');
+    var input = document.querySelector('.hb-chat-input');
+    var sendBtn = document.querySelector('.hb-chat-send-btn');
+    var POLL_INTERVAL_MS = 700;
+
+    function showPending(step) {
+      if (input) {
+        input.disabled = true;
+      }
+      if (sendBtn) {
+        sendBtn.disabled = true;
+      }
+      if (statusEl) {
+        statusEl.textContent = step || 'Thinking…';
+        statusEl.hidden = false;
+      }
+    }
+
+    function poll() {
+      fetch('/chat/status', {cache: 'no-store'})
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (data) {
+        if (data.pending) {
+          showPending(data.step);
+          setTimeout(poll, POLL_INTERVAL_MS);
+        } else {
+          window.location.reload();
+        }
+      });
+    }
+
+    fetch('/chat/status', {cache: 'no-store'})
+    .then(function (res) {
+      return res.json();
+    })
+    .then(function (data) {
+      if (data.pending) {
+        showPending(data.step);
+        setTimeout(poll, POLL_INTERVAL_MS);
+      }
+    });
+  })();
+</script>
+</body>
+</html>

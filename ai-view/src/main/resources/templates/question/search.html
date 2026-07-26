@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('Search Questions')}"></head>
+<body>
+<th:block th:replace="~{fragments/common :: header}"></th:block>
+
+<main class="hb-page hb-page--search">
+  <div class="hb-search-shell">
+    <form class="hb-search-header-form" method="get" th:action="@{/questions}">
+      <input autocomplete="off" autofocus class="hb-search-query-input" name="q"
+             placeholder="Describe what you're looking for…" th:value="${query}" type="search"/>
+    </form>
+
+    <div class="hb-search-count" th:if="${not #strings.isEmpty(query)}"
+         th:text="${totalCount} + (${totalCount == 1} ? ' match' : ' matches')">0 matches
+    </div>
+
+    <form class="hb-interview-form"
+          method="post"
+          th:action="@{/questions/interview-questions}" th:attr="data-status-url=@{/questions/interview-questions/status(q=${query})}" th:if="${hasMatches}">
+      <input name="q" th:value="${query}" type="hidden"/>
+      <label class="hb-interview-field">
+        Seniority
+        <select name="seniority">
+          <option th:each="lvl, lvlStat : ${levels}" th:selected="${lvlStat.index == 1}"
+                  th:text="${lvl}" th:value="${lvl}">LEVEL
+          </option>
+        </select>
+      </label>
+      <label class="hb-interview-field">
+        Questions
+        <input max="10" min="3" name="count" type="number" value="5"/>
+      </label>
+      <button class="hb-btn hb-btn--primary" id="hb-interview-generate-btn" type="submit">
+        Generate Interview Questions
+      </button>
+    </form>
+
+    <div class="hb-search-list" th:if="${hasMatches}">
+      <a class="hb-search-item" th:each="q : ${results}"
+         th:href="@{/questions/{id}(id=${q.id})}">
+        <div class="hb-question-icon">
+          <svg fill="none" height="12" stroke="currentColor" stroke-linecap="round"
+               stroke-width="1.5" viewBox="0 0 12 12" width="12">
+            <path d="M4 2L8 6L4 10"/>
+          </svg>
+        </div>
+        <div class="hb-search-item-body">
+          <div class="hb-search-item-title">
+            <span class="hb-question-number" th:text="${q.number} + '.'">1.</span>
+            <span class="hb-search-item-content" th:utext="${q.contentHtml}">Question title</span>
+          </div>
+          <div class="hb-question-tag"
+               th:text="${q.requiresImpl ? 'Coding' : 'Theoretical'}">
+            TYPE
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="hb-search-empty" th:if="${not #strings.isEmpty(query)} and ${!hasMatches}">
+      No matches found for "<span th:text="${query}">query</span>".
+    </div>
+
+    <div class="hb-search-empty" th:if="${#strings.isEmpty(query)}">
+      Describe a topic or question in your own words — this searches by meaning, not just
+      keywords.
+    </div>
+  </div>
+</main>
+
+<th:block
+    th:replace="~{fragments/interview-overlay :: overlay(interviewData=${interviewSet})}"></th:block>
+</body>
+</html>

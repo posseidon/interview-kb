@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class QuestionRepositoryDefaultMethodsTest {

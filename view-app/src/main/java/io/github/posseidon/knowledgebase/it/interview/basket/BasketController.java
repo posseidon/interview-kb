@@ -1,18 +1,19 @@
 package io.github.posseidon.knowledgebase.it.interview.basket;
 
+import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
 import io.github.posseidon.knowledgebase.it.interview.domain.skill.Skill;
 import io.github.posseidon.knowledgebase.it.interview.domain.skill.SkillLevel;
-import io.github.posseidon.knowledgebase.it.interview.dto.question.QuestionView;
 import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.SkillRepository;
-import io.github.posseidon.knowledgebase.it.interview.util.QuestionMapper;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -32,14 +33,16 @@ public class BasketController {
   private final Basket basket;
   private final SkillRepository skillRepository;
   private final QuestionRepository questionRepository;
-  private final QuestionMapper questionMapper;
 
   public BasketController(Basket basket, SkillRepository skillRepository,
-      QuestionRepository questionRepository, QuestionMapper questionMapper) {
+      QuestionRepository questionRepository) {
     this.basket = basket;
     this.skillRepository = skillRepository;
     this.questionRepository = questionRepository;
-    this.questionMapper = questionMapper;
+  }
+
+  private static CheckoutItem toCheckoutItem(Question q, int number) {
+    return new CheckoutItem(q.getId(), q.getContent(), q.isRequiresImpl(), number);
   }
 
   @Transactional(readOnly = true)
@@ -82,37 +85,45 @@ public class BasketController {
   }
 
   private Map<UUID, Skill> skillsById(Collection<UUID> ids) {
-      if (ids.isEmpty()) {
-          return Map.of();
-      }
+    if (ids.isEmpty()) {
+      return Map.of();
+    }
     return skillRepository.findAllById(ids).stream()
         .collect(Collectors.toMap(Skill::getId, s -> s));
   }
 
+  /**
+   * A question can be tagged with more than one skill, so the same question can match more than one
+   * basket entry (e.g. a question tagged both "Java" and "Spring Boot"). {@code seenIds} ensures
+   * each question is only rendered once — under whichever group it's matched first — so the "N
+   * questions matched" total always equals the number of rows actually listed below it.
+   */
   @Transactional(readOnly = true)
   @PostMapping("/checkout")
   public String checkout(Model model) {
     Map<UUID, Skill> skillsById = skillsById(basket.items().keySet());
-    Map<UUID, QuestionView> byId = new LinkedHashMap<>();
+    Set<UUID> seenIds = new LinkedHashSet<>();
+    AtomicInteger counter = new AtomicInteger(0);
     List<SkillResultGroup> groups = new ArrayList<>();
 
     for (Map.Entry<UUID, SkillLevel> entry : basket.items().entrySet()) {
       Skill skill = skillsById.get(entry.getKey());
-        if (skill == null) {
-            continue;
-        }
+      if (skill == null) {
+        continue;
+      }
       SkillLevel level = entry.getValue();
 
-      List<QuestionView> matched = questionRepository.findBySkillIdAndLevel(skill.getId(),
+      List<CheckoutItem> matched = questionRepository.findBySkillIdAndLevel(skill.getId(),
               level.name())
           .stream()
-          .map(q -> byId.computeIfAbsent(q.getId(), id -> questionMapper.toView(q)))
+          .filter(q -> seenIds.add(q.getId()))
+          .map(q -> toCheckoutItem(q, counter.incrementAndGet()))
           .toList();
       groups.add(new SkillResultGroup(skill.getName(), level, matched));
     }
 
     model.addAttribute("groups", groups);
-    model.addAttribute("totalQuestions", byId.size());
+    model.addAttribute("totalQuestions", seenIds.size());
     basket.clear();
     return "basket/checkout";
   }
@@ -121,7 +132,11 @@ public class BasketController {
 
   }
 
-  public record SkillResultGroup(String skillName, SkillLevel level, List<QuestionView> questions) {
+  public record SkillResultGroup(String skillName, SkillLevel level, List<CheckoutItem> questions) {
+
+  }
+
+  public record CheckoutItem(UUID id, String content, boolean requiresImpl, int number) {
 
   }
 }

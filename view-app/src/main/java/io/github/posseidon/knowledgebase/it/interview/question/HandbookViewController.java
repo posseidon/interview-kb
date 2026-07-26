@@ -17,9 +17,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +51,10 @@ public class HandbookViewController {
     this.questionMapper = questionMapper;
   }
 
+  private static SearchResultItem toSearchResultItem(QuestionView q, int number) {
+    return new SearchResultItem(q.id(), q.requiresImpl(), Markdown.toHtml(q.content()), number);
+  }
+
   @GetMapping("/")
   public String home(@RequestParam(required = false) String scope, Model model) {
     model.addAttribute("scope", scope != null ? scope : "all");
@@ -68,7 +72,7 @@ public class HandbookViewController {
     List<QuestionView> results;
     String displayQuery;
 
-    PageRequest page = PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "frequency"));
+    Pageable page = QuestionRepository.defaultSearchPage();
 
     if (isAsk) {
       results = questionRepository.findFilteredBySkill(null, q, page)
@@ -98,14 +102,13 @@ public class HandbookViewController {
       String primarySkill = q.skills().isEmpty() ? "Uncategorized" : q.skills().get(0).name();
       bySkill.computeIfAbsent(primarySkill, k -> new ArrayList<>()).add(q);
     }
+    AtomicInteger counter = new AtomicInteger(0);
     return bySkill.entrySet().stream()
         .map(e -> new SkillResultGroup(e.getKey(), e.getValue().size(),
-            e.getValue().stream().map(HandbookViewController::toSearchResultItem).toList()))
-        .collect(Collectors.toList());
-  }
-
-  private static SearchResultItem toSearchResultItem(QuestionView q) {
-    return new SearchResultItem(q.id(), q.requiresImpl(), Markdown.toHtml(q.content()));
+            e.getValue().stream()
+                .map(q -> toSearchResultItem(q, counter.incrementAndGet()))
+                .toList()))
+        .toList();
   }
 
   @Transactional(readOnly = true)
@@ -131,7 +134,7 @@ public class HandbookViewController {
 
   }
 
-  public record SearchResultItem(UUID id, boolean requiresImpl, String contentHtml) {
+  public record SearchResultItem(UUID id, boolean requiresImpl, String contentHtml, int number) {
 
   }
 

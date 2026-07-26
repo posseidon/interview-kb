@@ -4,13 +4,14 @@ A single-user service for storing, searching, and browsing IT interview question
 semantic search and
 human-in-the-loop merging backed by a local LLM (RAG via Ollama) and PostgreSQL with pgvector.
 
-The project is a Maven multi-module build split into three modules:
+The project is a Maven multi-module build split into four modules:
 
 ```
 interview-kb/
 ├── shared/       Domain model, DTOs, repositories — no web layer, no AI
 ├── ingest-app/   Ingestion, RAG (/ask), merge, skill import — Ollama + pgvector
-└── view-app/     Browsing UI, basket, interviews — plain read/write, no AI
+├── view-app/     Browsing UI, basket, interviews — plain read/write, no AI
+└── ai-view/      Agentic chat UI — Ollama tool-calling agent, read-only
 ```
 
 ## Modules
@@ -57,20 +58,51 @@ The read/browse side: the Thymeleaf UI plus a small JSON API, no AI dependency.
   against it (
   `ddl-auto=validate`).
 
-Both apps connect to the same Supabase Postgres instance and share the `shared` module's
+### `ai-view` — port `8082`
+
+An agentic chat UI over the knowledge base, backed by the local Ollama chat model. Read-only —
+like `view-app`, it never migrates the schema (`spring.flyway.enabled=false`, `ddl-auto=validate`)
+and has no write endpoints.
+
+- **`GET /chat`** — the chat page; **`POST /chat/messages`** — send a message.
+- One `ChatClient` bean configured with five `@Tool`-annotated methods
+  (`chat/tools/QuestionBankTools`); the model decides which tool(s) to call per turn (Spring AI's
+  tool-calling loop handles this automatically — no hand-written orchestration). Each tool only
+  fetches grounding data from the existing `QuestionRepository`/`SkillRepository`/`VectorStore` —
+  the model does the generative work of phrasing answers and quizzes from what the tools return.
+- Conversation history is in-memory and scoped to the browser session (`MessageWindowChatMemory`
+  keyed by the HTTP session id) — nothing is persisted, and history is lost on restart.
+- No Azure deployment config for this module — local-only, same Ollama/Supabase prerequisites as
+  `ingest-app`.
+
+Ask it things like:
+
+| What you want                      | Example prompt                                                                 |
+|------------------------------------|--------------------------------------------------------------------------------|
+| Browse questions by topic          | "Show me questions about Kafka consumer groups."                               |
+| Factual answer from stored answers | "How does Spring Boot's `@SpringBootApplication` auto-configuration work?"     |
+| Match a job description            | "Here's a job description: [paste text]. Which of our questions are relevant?" |
+| Quiz on one skill                  | "Give me a quiz on Java concurrency at the Advanced level."                    |
+| Quiz series from a position        | "Build a series of quizzes based on this project description: [paste text]."   |
+
+Both `ingest-app` and `ai-view` talk to the same local Ollama daemon
+(`docker compose up -d`) — `ai-view` additionally needs `nomic-embed-text` pulled, since it runs
+its own semantic search against the shared `vector_store` table.
+
+All apps connect to the same Supabase Postgres instance and share the `shared` module's
 entities/repositories, so data
-written by `ingest-app` is immediately visible in `view-app`.
+written by `ingest-app` is immediately visible in `view-app` and `ai-view`.
 
 ---
 
 ## Stack
 
-- Java 21 · Spring Boot 3.4 · Spring AI 1.1 (`ingest-app` only)
-- PostgreSQL 16 + pgvector via **Supabase** (cloud) — shared by both apps
+- Java 21 · Spring Boot 3.4 · Spring AI 1.1 (`ingest-app` and `ai-view`)
+- PostgreSQL 16 + pgvector via **Supabase** (cloud) — shared by all apps
 - Ollama (local) — `nomic-embed-text` for embeddings, `llama3.1:8b` for chat — used by `ingest-app`
-  only
+  and `ai-view`
 - Flyway for schema migrations (applied by `ingest-app`)
-- Thymeleaf for server-rendered views (`view-app` only)
+- Thymeleaf for server-rendered views (`view-app` and `ai-view`)
 
 ---
 
@@ -152,11 +184,9 @@ mvn clean install
 
 ### Step 5 — Run the apps
 
-The two apps are independent Spring Boot processes and can be started separately, in either order. *
-*Start `ingest-app`
-first at least once** — it owns the Flyway migrations, so the schema needs to exist before
-`view-app` (which only
-validates it) connects.
+The three apps are independent Spring Boot processes and can be started separately, in any order
+relative to each other. **Start `ingest-app` first at least once** — it owns the Flyway migrations,
+so the schema needs to exist before `view-app`/`ai-view` (which only validate it) connect.
 
 **Ingestion app — port 8081**
 
@@ -170,7 +200,14 @@ mvn -pl ingest-app -am spring-boot:run
 mvn -pl view-app -am spring-boot:run
 ```
 
-Run both in separate terminals to have the full system (ingest/AI + browsing UI) available at once.
+**AI chat app — port 8082**
+
+```bash
+mvn -pl ai-view -am spring-boot:run
+```
+
+Run all three in separate terminals to have the full system (ingest/AI + browsing UI + chat
+assistant) available at once. `ai-view` is optional if you only need ingestion/browsing.
 
 ### Step 6 — Verify
 
@@ -179,6 +216,7 @@ Run both in separate terminals to have the full system (ingest/AI + browsing UI)
 ```bash
 curl http://localhost:8081/actuator/health   # ingest-app
 curl http://localhost:8080/actuator/health   # view-app
+curl http://localhost:8082/actuator/health   # ai-view
 ```
 
 **Windows (PowerShell)**
@@ -186,19 +224,23 @@ curl http://localhost:8080/actuator/health   # view-app
 ```powershell
 Invoke-RestMethod http://localhost:8081/actuator/health
 Invoke-RestMethod http://localhost:8080/actuator/health
+Invoke-RestMethod http://localhost:8082/actuator/health
 ```
 
 Expected response from each:
 
 ```json
-{"status": "UP"}
+{
+  "status": "UP"
+}
 ```
 
-`ingest-app`'s health check reports both `db` (Supabase) and Ollama as `UP`. `view-app`'s reports
-only `db`, since it
-has no AI dependency. If Ollama is still pulling a model, wait a moment and retry.
+`ingest-app` and `ai-view`'s health checks report both `db` (Supabase) and Ollama as `UP`.
+`view-app`'s reports only `db`, since it has no AI dependency. If Ollama is still pulling a model,
+wait a moment and retry.
 
-Once both are up, open `http://localhost:8080/` in a browser for the handbook UI.
+Once they're up, open `http://localhost:8080/` in a browser for the handbook UI, or
+`http://localhost:8082/chat` for the AI chat assistant.
 
 ---
 
@@ -265,7 +307,9 @@ curl -X POST http://localhost:8081/skills/import -F "file=@skills.xlsx"
 **Response `200`**
 
 ```json
-{"imported": 42}
+{
+  "imported": 42
+}
 ```
 
 #### `POST /ask`
@@ -293,7 +337,12 @@ curl -X POST http://localhost:8081/ask \
       "requiresImpl": false,
       "language": "en",
       "frequency": 1,
-      "skills": [{"id": "c1d2e3f4-1234-4562-b3fc-2c963f66afa6", "name": "Kafka"}],
+      "skills": [
+        {
+          "id": "c1d2e3f4-1234-4562-b3fc-2c963f66afa6",
+          "name": "Kafka"
+        }
+      ],
       "answers": [
         {
           "id": "7fa12a64-1234-4562-b3fc-2c963f66afa6",
@@ -422,7 +471,12 @@ curl "http://localhost:8080/questions?sort=createdAt,desc"
       "requiresImpl": false,
       "language": "en",
       "frequency": 1,
-      "skills": [{"id": "c1d2e3f4-1234-4562-b3fc-2c963f66afa6", "name": "Kafka"}],
+      "skills": [
+        {
+          "id": "c1d2e3f4-1234-4562-b3fc-2c963f66afa6",
+          "name": "Kafka"
+        }
+      ],
       "answers": [
         {
           "id": "7fa12a64-1234-4562-b3fc-2c963f66afa6",
@@ -478,7 +532,12 @@ Returned by `/questions`, `/questions/{id}`, `/skills/{id}/questions`, and `/ask
   "requiresImpl": "boolean",
   "language": "string",
   "frequency": "integer",
-  "skills": [{"id": "uuid", "name": "string"}],
+  "skills": [
+    {
+      "id": "uuid",
+      "name": "string"
+    }
+  ],
   "answers": [
     {
       "id": "uuid",

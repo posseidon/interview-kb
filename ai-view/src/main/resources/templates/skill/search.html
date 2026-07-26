@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('Search Skills')}"></head>
+<body>
+<th:block th:replace="~{fragments/common :: header}"></th:block>
+
+<main class="hb-page hb-page--search">
+  <div class="hb-search-shell">
+    <form class="hb-search-header-form" method="get" th:action="@{/skills}">
+      <input autocomplete="off" autofocus class="hb-search-query-input" name="q"
+             placeholder="Search skills by name…" th:value="${query}" type="search"/>
+    </form>
+
+    <div class="hb-search-list" th:if="${hasMatches}">
+      <a class="hb-search-item" th:each="s : ${results}" th:href="@{/skills/{id}(id=${s.id})}">
+        <div class="hb-question-icon">
+          <svg fill="none" height="12" stroke="currentColor" stroke-linecap="round"
+               stroke-width="1.5" viewBox="0 0 12 12" width="12">
+            <path d="M4 2L8 6L4 10"/>
+          </svg>
+        </div>
+        <div class="hb-search-item-body">
+          <div class="hb-search-item-title">
+            <span class="hb-search-item-content" th:text="${s.name}">Skill name</span>
+          </div>
+          <div class="hb-question-tag" th:if="${not #strings.isEmpty(s.description)}"
+               th:text="${s.description}">
+            Description
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="hb-search-empty" th:if="${not #strings.isEmpty(query)} and ${!hasMatches}">
+      No skills found for "<span th:text="${query}">query</span>".
+    </div>
+
+    <div class="hb-search-empty" th:if="${#strings.isEmpty(query)}">
+      Search for a skill by name, then generate interview questions grounded in the questions
+      already tagged with it.
+    </div>
+  </div>
+</main>
+</body>
+</html>

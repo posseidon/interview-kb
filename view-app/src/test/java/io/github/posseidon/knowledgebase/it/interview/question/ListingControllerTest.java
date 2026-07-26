@@ -27,16 +27,16 @@ class ListingControllerTest {
   private QuestionRepository questionRepository;
   private ListingController controller;
 
-  @BeforeEach
-  void setUp() {
-    questionRepository = mock(QuestionRepository.class);
-    controller = new ListingController(questionRepository, new QuestionMapper());
-  }
-
   private static Question question() {
     Question q = new Question("content", "hash");
     q.setId(UUID.randomUUID());
     return q;
+  }
+
+  @BeforeEach
+  void setUp() {
+    questionRepository = mock(QuestionRepository.class);
+    controller = new ListingController(questionRepository, new QuestionMapper());
   }
 
   @Test

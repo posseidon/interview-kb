@@ -13,12 +13,12 @@ public final class QuestionScope {
   }
 
   public static List<QuestionView> filter(List<QuestionView> results, String scope) {
-      if ("coding".equals(scope)) {
-          return results.stream().filter(QuestionView::requiresImpl).toList();
-      }
-      if ("theory".equals(scope)) {
-          return results.stream().filter(r -> !r.requiresImpl()).toList();
-      }
+    if ("coding".equals(scope)) {
+      return results.stream().filter(QuestionView::requiresImpl).toList();
+    }
+    if ("theory".equals(scope)) {
+      return results.stream().filter(r -> !r.requiresImpl()).toList();
+    }
     return results;
   }
 }

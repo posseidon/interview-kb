@@ -1,4 +1,4 @@
-package io.github.posseidon.knowledgebase.it.interview.ingest;
+package io.github.posseidon.knowledgebase.it.interview.vectorstore;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

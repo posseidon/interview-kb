@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+  <meta charset="UTF-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title th:text="${title}">AI Assistant</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=EB+Garamond:wght@400;600&amp;display=swap"
+      rel="stylesheet"/>
+  <link rel="icon" th:href="@{/favicon.svg}" type="image/svg+xml"/>
+  <link rel="stylesheet" th:href="@{/css/ai-chat.css}"/>
+  <!-- Syntax highlighting for fenced code blocks the assistant renders (quiz/answer content).
+       No stock theme stylesheet loaded — token colors are hand-styled in ai-chat.css to match
+       the dark assistant-bubble background, mirroring view-app's handbook.css setup. -->
+  <script defer onload="hljs.highlightAll()"
+          src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+<th:block th:fragment="header">
+  <header class="hb-chat-header">
+    <span class="hb-chat-title">AI Assistant</span>
+    <nav class="hb-app-nav">
+      <a class="hb-app-nav-link" th:href="@{/chat}">Chat</a>
+      <a class="hb-app-nav-link" th:href="@{/questions}">Questions</a>
+      <a class="hb-app-nav-link" th:href="@{/skills}">Skills</a>
+    </nav>
+  </header>
+</th:block>
+</body>
+</html>

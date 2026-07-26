@@ -29,7 +29,10 @@
         </svg>
       </div>
       <div class="hb-question-body">
-        <div class="hb-question-title" th:text="${q.content}">Question title</div>
+        <div class="hb-question-title">
+          <span class="hb-question-number" th:text="${q.number} + '.'">1.</span>
+          <span th:text="${q.content}">Question title</span>
+        </div>
         <div class="hb-question-tag"
              th:text="${q.requiresImpl ? 'Coding' : 'Theoretical'}">
           TYPE

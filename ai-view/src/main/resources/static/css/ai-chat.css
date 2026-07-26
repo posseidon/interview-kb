@@ -1,0 +1,1253 @@
+:root {
+  --color-primary: #0052FF;
+  --color-primary-shadow: #003bb8;
+  --color-primary-light: #89a9ff;
+  --color-background: #F9F9F9;
+  --color-text: #121212;
+  --color-muted: #737373;
+  --color-surface-muted: #eeece5;
+  --color-divider: #ececec;
+  --color-success: #1a7f37;
+  --color-success-surface: #e6f4ea;
+  --color-danger: #c0392b;
+  --color-danger-surface: #fbeae8;
+  --font-heading: 'IBM Plex Mono', monospace;
+  --font-body: 'EB Garamond', serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+.hb-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 56px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--color-text);
+}
+
+.hb-chat-brand {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.hb-chat-brand:hover {
+  opacity: 0.7;
+}
+
+.hb-chat-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hb-chat-page {
+  display: flex;
+  justify-content: center;
+  min-height: calc(100vh - 56px);
+  padding: 24px;
+}
+
+.hb-chat-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 760px;
+  height: calc(100vh - 104px);
+}
+
+.hb-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 4px 24px;
+}
+
+.hb-chat-empty {
+  margin: auto;
+  max-width: 420px;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+
+.hb-chat-msg {
+  max-width: 85%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hb-chat-msg--user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.hb-chat-msg--assistant {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.hb-chat-msg-role {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-muted);
+}
+
+.hb-chat-msg--user .hb-chat-msg-body {
+  background: var(--color-background);
+  border: 1px solid var(--color-text);
+  padding: 12px 16px;
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.hb-chat-msg--assistant .hb-chat-msg-body {
+  background: var(--color-text);
+  color: var(--color-background);
+  padding: 14px 18px;
+}
+
+.hb-chat-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 2px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  color: var(--color-muted);
+  animation: hb-chat-status-pulse 1.4s ease-in-out infinite;
+}
+
+/* Author-stylesheet `display: flex` above otherwise beats the UA stylesheet's default
+   `[hidden] { display: none }` at equal specificity — this reasserts it explicitly so the
+   `hidden` attribute (toggled by the polling JS in chat.html) actually hides the element. */
+.hb-chat-status[hidden] {
+  display: none;
+}
+
+@keyframes hb-chat-status-pulse {
+  0%, 100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.hb-chat-composer {
+  display: flex;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-text);
+}
+
+.hb-chat-input:disabled,
+.hb-chat-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hb-chat-input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  border: 1px solid var(--color-text);
+  background: var(--color-background);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  color: var(--color-text);
+  padding: 0 14px;
+  outline: none;
+}
+
+.hb-chat-input:focus {
+  border: 2px solid var(--color-primary);
+  padding: 0 13px;
+}
+
+.hb-chat-send-btn {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  padding: 0 22px;
+  border: 1px solid var(--color-text);
+  background: var(--color-text);
+  color: var(--color-background);
+  cursor: pointer;
+}
+
+.hb-chat-send-btn:hover {
+  opacity: 0.7;
+}
+
+/* ─── Assistant message prose (rendered markdown) ────────────────────────────
+   Mirrors view-app's .hb-answer-rendered rules, tuned for the dark bubble background. */
+.hb-msg-prose p {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+
+.hb-msg-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.hb-msg-prose h1,
+.hb-msg-prose h2,
+.hb-msg-prose h3,
+.hb-msg-prose h4 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 18px 0 8px;
+}
+
+.hb-msg-prose h1 {
+  font-size: 19px;
+}
+
+.hb-msg-prose h2 {
+  font-size: 16px;
+}
+
+.hb-msg-prose h3,
+.hb-msg-prose h4 {
+  font-size: 14px;
+}
+
+.hb-msg-prose ul,
+.hb-msg-prose ol {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  padding-left: 22px;
+  margin: 0 0 14px;
+}
+
+.hb-msg-prose li {
+  margin-bottom: 4px;
+}
+
+.hb-msg-prose strong {
+  font-weight: 700;
+}
+
+.hb-msg-prose em {
+  font-style: italic;
+}
+
+.hb-msg-prose blockquote {
+  border-left: 3px solid var(--color-background);
+  opacity: 0.85;
+  margin: 0 0 14px;
+  padding: 0 0 0 14px;
+  font-style: italic;
+}
+
+.hb-msg-prose hr {
+  border: none;
+  border-top: 1px solid var(--color-background);
+  opacity: 0.4;
+  margin: 18px 0;
+}
+
+.hb-msg-prose code {
+  font-family: var(--font-heading);
+  font-size: 0.875em;
+  background: rgba(249, 249, 249, 0.15);
+  padding: 2px 5px;
+}
+
+.hb-msg-prose pre {
+  background: rgba(249, 249, 249, 0.08);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 12px 14px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  margin: 0 0 14px;
+}
+
+.hb-msg-prose pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.hb-msg-prose table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 15px;
+  margin: 0 0 14px;
+}
+
+.hb-msg-prose th,
+.hb-msg-prose td {
+  border: 1px solid rgba(249, 249, 249, 0.25);
+  padding: 6px 10px;
+  text-align: left;
+}
+
+/* ─── Syntax highlighting (highlight.js token classes) ──────────────────────
+   No stock hljs theme loaded — .hljs itself stays transparent so the dark assistant-bubble
+   background shows through; only token colors are set, matching view-app's handbook.css. */
+.hljs {
+  background: none;
+  color: inherit;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #8a8a8a;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-type,
+.hljs-doctag {
+  color: var(--color-primary-light);
+}
+
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-number,
+.hljs-meta {
+  color: #f2b56d;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-title.function_ {
+  color: #7ec699;
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-params {
+  color: #e0b3ff;
+}
+
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-name,
+.hljs-tag {
+  color: #66d9ef;
+}
+
+.hljs-deletion {
+  color: #ff6b6b;
+}
+
+.hljs-addition {
+  color: #7ec699;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .hb-chat-page {
+    padding: 12px;
+  }
+
+  .hb-chat-shell {
+    height: calc(100vh - 88px);
+  }
+
+  .hb-chat-msg {
+    max-width: 95%;
+  }
+}
+
+/* ─── Header nav (Chat / Questions) ──────────────────────────────────────── */
+.hb-app-nav {
+  display: flex;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.hb-app-nav-link {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  color: var(--color-text);
+  text-decoration: none;
+  opacity: 0.7;
+}
+
+.hb-app-nav-link:hover {
+  opacity: 1;
+}
+
+/* ─── Generic page container ─────────────────────────────────────────────── */
+.hb-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 24px 56px;
+}
+
+.hb-back {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  color: var(--color-primary);
+  text-decoration: none;
+  margin-bottom: 18px;
+}
+
+.hb-back:hover {
+  text-decoration: underline;
+}
+
+.hb-btn {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  padding: 10px 22px;
+  border: 1px solid var(--color-text);
+  background: none;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.hb-btn:hover {
+  opacity: 0.7;
+}
+
+.hb-btn--primary {
+  background: var(--color-text);
+  color: var(--color-background);
+}
+
+/* ─── Question search (NLP / semantic) ───────────────────────────────────── */
+.hb-page--search {
+  max-width: none;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.hb-search-shell {
+  width: 100%;
+  min-width: 0;
+  max-width: 680px;
+  padding: 32px 24px 56px;
+}
+
+.hb-search-header-form {
+  margin-bottom: 8px;
+}
+
+.hb-search-query-input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid var(--color-text);
+  background: none;
+  outline: none;
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  padding: 0 0 8px;
+}
+
+.hb-search-query-input:focus {
+  border-bottom-color: var(--color-primary);
+}
+
+.hb-search-count {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  color: var(--color-muted);
+  margin-bottom: 12px;
+}
+
+.hb-search-list {
+  border-top: 1px solid var(--color-divider);
+}
+
+.hb-search-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--color-divider);
+  text-decoration: none;
+  color: inherit;
+}
+
+.hb-search-item:hover {
+  background: var(--color-surface-muted);
+}
+
+.hb-search-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.hb-search-item-title {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--color-text);
+  margin-bottom: 3px;
+}
+
+.hb-search-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.hb-search-item-title p {
+  margin: 0;
+}
+
+.hb-search-item-title p + p {
+  margin-top: 10px;
+}
+
+/* Content that happens to start with "N. " is parsed by CommonMark as an ordered list, not a
+   plain paragraph — without these resets the browser's default ol/li margin/indent throws the
+   row out of alignment with plain-text items (same fix as view-app's search.html). */
+.hb-search-item-title ol,
+.hb-search-item-title ul {
+  margin: 0;
+  padding-left: 1.3em;
+}
+
+.hb-search-item-title li {
+  margin: 0;
+}
+
+.hb-search-item-title li + li {
+  margin-top: 4px;
+}
+
+.hb-search-item-title strong {
+  font-weight: 700;
+}
+
+.hb-search-item-title em {
+  font-style: italic;
+}
+
+.hb-search-item-title code {
+  font-family: var(--font-heading);
+  font-size: 0.85em;
+  background: rgba(18, 18, 18, 0.08);
+  padding: 1px 5px;
+}
+
+.hb-search-empty {
+  padding: 40px 4px;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 17px;
+  color: var(--color-muted);
+}
+
+.hb-question-icon {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-text);
+}
+
+.hb-question-number {
+  flex-shrink: 0;
+  font-family: var(--font-heading);
+  color: var(--color-muted);
+  margin-right: 4px;
+}
+
+.hb-question-tag {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* ─── Question detail + quiz ──────────────────────────────────────────────── */
+.hb-page--detail {
+  max-width: 720px;
+}
+
+.hb-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.hb-chip {
+  display: inline-block;
+  background: var(--color-text);
+  color: var(--color-background);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  padding: 4px 9px;
+  cursor: pointer;
+}
+
+.hb-chip--level {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-text);
+}
+
+.hb-chip--muted {
+  background: transparent;
+  color: var(--color-muted);
+  border: 1px solid var(--color-divider);
+}
+
+.hb-chip--muted:hover {
+  color: var(--color-text);
+  border-color: var(--color-text);
+}
+
+.hb-detail-title {
+  margin: 0 0 12px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.hb-meta {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  color: var(--color-muted);
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-text);
+  margin-bottom: 20px;
+}
+
+.hb-skill-criteria {
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin-bottom: 20px;
+}
+
+.hb-answer-block {
+  margin-bottom: 8px;
+}
+
+.hb-answer-divider {
+  border: none;
+  border-top: 1px dashed var(--color-muted);
+  margin: 28px 0;
+}
+
+.hb-answer-source {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 12px;
+}
+
+.hb-empty {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+/* Rendered markdown on a light page background (answers + quiz result) — a separate ruleset
+   from .hb-msg-prose, which is tuned for the dark chat-bubble background instead. */
+.hb-answer-rendered p {
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+
+.hb-answer-rendered h1,
+.hb-answer-rendered h2,
+.hb-answer-rendered h3,
+.hb-answer-rendered h4 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.25;
+  margin: 24px 0 10px;
+}
+
+.hb-answer-rendered h1 {
+  font-size: 22px;
+}
+
+.hb-answer-rendered h2 {
+  font-size: 18px;
+}
+
+.hb-answer-rendered h3 {
+  font-size: 15px;
+}
+
+.hb-answer-rendered h4 {
+  font-size: 13px;
+}
+
+.hb-answer-rendered ul,
+.hb-answer-rendered ol {
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.6;
+  padding-left: 24px;
+  margin: 0 0 16px;
+}
+
+.hb-answer-rendered li {
+  margin-bottom: 4px;
+}
+
+.hb-answer-rendered strong {
+  font-weight: 700;
+}
+
+.hb-answer-rendered em {
+  font-style: italic;
+}
+
+.hb-answer-rendered blockquote {
+  border-left: 3px solid var(--color-muted);
+  margin: 0 0 16px;
+  padding: 0 0 0 16px;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.hb-answer-rendered hr {
+  border: none;
+  border-top: 1px solid var(--color-text);
+  margin: 24px 0;
+}
+
+.hb-answer-rendered code {
+  font-family: var(--font-heading);
+  font-size: 0.875em;
+  background: rgba(18, 18, 18, 0.08);
+  padding: 2px 5px;
+}
+
+.hb-answer-rendered pre {
+  background: var(--color-text);
+  color: var(--color-background);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 14px 16px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  margin: 0 0 16px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.hb-answer-rendered pre:hover::after {
+  content: 'tap to copy';
+  float: right;
+  font-size: 11px;
+  color: var(--color-muted);
+  letter-spacing: 0.5px;
+}
+
+.hb-answer-rendered pre.hb-code--flash {
+  background: var(--color-primary);
+}
+
+.hb-answer-rendered pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.hb-answer-rendered table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0 0 16px;
+}
+
+.hb-answer-rendered th,
+.hb-answer-rendered td {
+  border: 1px solid var(--color-divider);
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.hb-quiz-section {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-text);
+}
+
+#hb-quiz-generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Non-blocking generation indicator — floats over the page so the answers stay scrollable
+   while a quiz is being generated in the background. */
+.hb-quiz-progress-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 40;
+  min-width: 260px;
+  max-width: calc(100vw - 48px);
+  background: var(--color-text);
+  color: var(--color-background);
+  padding: 12px 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.hb-quiz-progress-toast[hidden] {
+  display: none;
+}
+
+.hb-quiz-progress-label {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.hb-quiz-progress-bar {
+  height: 4px;
+  overflow: hidden;
+  background: rgba(249, 249, 249, 0.25);
+}
+
+.hb-quiz-progress-bar-fill {
+  width: 40%;
+  height: 100%;
+  background: var(--color-primary);
+  animation: hb-quiz-progress-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes hb-quiz-progress-slide {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+/* Quiz overlay — dims/hides the answers behind an 80% backdrop while the quiz is open. */
+.hb-quiz-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.hb-quiz-overlay[hidden] {
+  display: none;
+}
+
+.hb-quiz-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(18, 18, 18, 0.8);
+}
+
+.hb-quiz-modal {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: var(--color-background);
+  border: 1px solid var(--color-text);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  padding: 40px 28px 28px;
+}
+
+.hb-quiz-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: var(--color-muted);
+  font-family: var(--font-heading);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hb-quiz-close:hover {
+  color: var(--color-text);
+}
+
+body.hb-quiz-lock-scroll {
+  overflow: hidden;
+}
+
+.hb-quiz-widget {
+  max-width: 100%;
+}
+
+.hb-quiz-progress {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-bottom: 10px;
+}
+
+.hb-quiz-question-text {
+  font-family: var(--font-body);
+  font-size: 19px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.hb-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.hb-quiz-option {
+  text-align: left;
+  border: 1px solid var(--color-text);
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.hb-quiz-option:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+}
+
+.hb-quiz-option:disabled {
+  cursor: default;
+}
+
+.hb-quiz-option--correct {
+  border-color: var(--color-success);
+  background: var(--color-success-surface);
+  color: var(--color-success);
+}
+
+.hb-quiz-option--incorrect {
+  border-color: var(--color-danger);
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+
+.hb-quiz-explanation {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-muted);
+  border-left: 3px solid var(--color-muted);
+  padding: 2px 0 2px 14px;
+  margin-bottom: 16px;
+}
+
+.hb-quiz-summary {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* ─── Interview-question generation (search page) ─────────────────────────── */
+.hb-interview-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.hb-interview-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.hb-interview-field select,
+.hb-interview-field input {
+  border: 1px solid var(--color-text);
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  padding: 6px 8px;
+}
+
+.hb-interview-field input[type="number"] {
+  width: 64px;
+}
+
+#hb-interview-generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hb-interview-progress-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 40;
+  min-width: 260px;
+  max-width: calc(100vw - 48px);
+  background: var(--color-text);
+  color: var(--color-background);
+  padding: 12px 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.hb-interview-progress-toast[hidden] {
+  display: none;
+}
+
+.hb-interview-progress-label {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.hb-interview-progress-bar {
+  height: 4px;
+  overflow: hidden;
+  background: rgba(249, 249, 249, 0.25);
+}
+
+.hb-interview-progress-bar-fill {
+  width: 40%;
+  height: 100%;
+  background: var(--color-primary);
+  animation: hb-quiz-progress-slide 1.2s ease-in-out infinite;
+}
+
+/* Interview-questions overlay — dims the search results behind an 80% backdrop while open. */
+.hb-interview-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.hb-interview-overlay[hidden] {
+  display: none;
+}
+
+.hb-interview-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(18, 18, 18, 0.8);
+}
+
+.hb-interview-modal {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: var(--color-background);
+  border: 1px solid var(--color-text);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  padding: 40px 28px 28px;
+}
+
+.hb-interview-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: var(--color-muted);
+  font-family: var(--font-heading);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hb-interview-close:hover {
+  color: var(--color-text);
+}
+
+.hb-interview-widget {
+  max-width: 100%;
+}
+
+.hb-interview-position {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-bottom: 10px;
+}
+
+.hb-interview-type {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.hb-interview-type[hidden] {
+  display: none;
+}
+
+.hb-interview-question {
+  font-family: var(--font-body);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+
+.hb-interview-sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.hb-interview-sources[hidden] {
+  display: none;
+}
+
+.hb-interview-sources-label {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.hb-interview-source-link {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  padding: 3px 8px;
+  text-decoration: none;
+}
+
+.hb-interview-source-link:hover {
+  background: var(--color-primary);
+  color: var(--color-background);
+}
+
+.hb-interview-nav {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.hb-interview-nav-btn {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-text);
+  background: var(--color-background);
+  color: var(--color-text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hb-interview-nav-btn--enter {
+  grid-column: 2;
+  justify-self: center;
+}
+
+.hb-interview-nav-btn--next {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.hb-interview-nav-btn:hover {
+  background: var(--color-surface-muted);
+}
+
+.hb-interview-nav-btn[hidden] {
+  display: none;
+}
+
+#hb-interview-export-btn {
+  margin-top: 8px;
+}

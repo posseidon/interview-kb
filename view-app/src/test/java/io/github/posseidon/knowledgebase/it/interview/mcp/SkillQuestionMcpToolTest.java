@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
 import io.github.posseidon.knowledgebase.it.interview.domain.skill.Skill;
-import io.github.posseidon.knowledgebase.it.interview.domain.skill.SkillLevel;
 import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.SkillRepository;
 import io.github.posseidon.knowledgebase.it.interview.util.QuestionMapper;

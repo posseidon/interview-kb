@@ -4,17 +4,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.posseidon.knowledgebase.it.interview.domain.merge.MergeLog;
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Answer;
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
-import io.github.posseidon.knowledgebase.it.interview.ingest.QuestionDocuments;
+import io.github.posseidon.knowledgebase.it.interview.vectorstore.QuestionDocuments;
 import io.github.posseidon.knowledgebase.it.interview.repo.MergeLogRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
+import io.github.posseidon.knowledgebase.it.interview.util.VectorStoreIds;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -23,8 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class MergeService {
-
-  private static final Logger log = LoggerFactory.getLogger(MergeService.class);
 
   private final QuestionRepository questionRepository;
   private final MergeLogRepository mergeLogRepository;
@@ -47,15 +44,11 @@ public class MergeService {
           .query(q.getContent()).topK(5).similarityThreshold(threshold).build();
       List<Document> results = vectorStore.similaritySearch(request);
       for (Document doc : results) {
-          if (doc.getId().equals(q.getId().toString())) {
-              continue;
-          }
-        try {
-          UUID candidateId = UUID.fromString(doc.getId());
-          raw.add(new MergeCandidate(q.getId(), candidateId, doc.getScore().floatValue()));
-        } catch (IllegalArgumentException e) {
-          log.warn("Skipping vector-store document with non-UUID id: {}", doc.getId());
+        if (doc.getId().equals(q.getId().toString())) {
+          continue;
         }
+        VectorStoreIds.parse(doc.getId()).ifPresent(candidateId ->
+            raw.add(new MergeCandidate(q.getId(), candidateId, doc.getScore().floatValue())));
       }
     }
 
@@ -66,8 +59,18 @@ public class MergeService {
     return raw.stream().filter(c -> validIds.contains(c.targetId())).toList();
   }
 
-  @Transactional
   public void merge(UUID targetId, UUID sourceId) {
+    merge(targetId, sourceId, null, null);
+  }
+
+  /**
+   * Like {@link #merge(UUID, UUID)}, but records the similarity score and a free-text note
+   * (e.g. "auto-merged during ingestion") on the {@link MergeLog} entry — for merges triggered
+   * automatically, without human review, where an audit trail of *why* matters more than for the
+   * reviewed {@code /merge} flow.
+   */
+  @Transactional
+  public void merge(UUID targetId, UUID sourceId, Float similarity, String note) {
     Question target = questionRepository.findById(targetId)
         .orElseThrow(() -> new IllegalArgumentException("Target question not found"));
     Question source = questionRepository.findById(sourceId)
@@ -79,7 +82,10 @@ public class MergeService {
     } catch (Exception e) {
       sourceSnapshot = source.toString();
     }
-    mergeLogRepository.save(new MergeLog(targetId, sourceSnapshot));
+    MergeLog mergeLog = new MergeLog(targetId, sourceSnapshot);
+    mergeLog.setSimilarity(similarity);
+    mergeLog.setNote(note);
+    mergeLogRepository.save(mergeLog);
 
     for (Answer answer : new HashSet<>(source.getAnswers())) {
       answer.setQuestion(target);

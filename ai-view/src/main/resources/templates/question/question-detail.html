@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head(${question.content})}"></head>
+<body>
+<th:block th:replace="~{fragments/common :: header}"></th:block>
+<main class="hb-page hb-page--detail">
+  <a class="hb-back"
+     onclick="if(history.length&gt;1){history.back();return false;}"
+     th:href="@{/questions}">&lt; Back</a>
+
+  <div class="hb-chip-row"
+       th:if="${not #lists.isEmpty(question.skills)} or ${question.level != null}">
+    <div class="hb-chip" th:each="skill : ${question.skills}"
+         th:text="${skill.name}">SKILL
+    </div>
+    <div class="hb-chip hb-chip--level" th:if="${question.level != null}"
+         th:text="${question.level}">LEVEL
+    </div>
+  </div>
+
+  <div class="hb-detail-title" th:utext="${questionContentHtml}">Question title</div>
+
+  <div class="hb-meta">
+    <th:block th:if="${not #lists.isEmpty(question.skills)}">Skills: <span
+        th:text="${#strings.listJoin(question.skills.![name], ', ')}">skill</span> &middot;
+    </th:block>
+    Added <span th:text="${createdAtDisplay}">Apr 2, 2026</span>
+  </div>
+
+  <th:block th:if="${not #lists.isEmpty(answerDetails)}">
+    <div class="hb-answer-block" th:each="answer, stat : ${answerDetails}">
+      <div class="hb-answer-divider" th:if="${not stat.first}"></div>
+      <div class="hb-answer-source"
+           th:if="${#lists.size(answerDetails) > 1}"
+           th:text="${answer.source}">human
+      </div>
+      <div class="hb-answer-rendered" th:utext="${answer.htmlContent}"></div>
+    </div>
+  </th:block>
+
+  <p class="hb-empty" th:if="${#lists.isEmpty(answerDetails)}">No answer yet.</p>
+
+  <div class="hb-quiz-section"
+       th:attr="data-status-url=@{/questions/{id}/quiz/status(id=${question.id})}"
+       th:if="${not #lists.isEmpty(answerDetails)}">
+    <form method="post" th:action="@{/questions/{id}/quiz(id=${question.id})}">
+      <button class="hb-btn hb-btn--primary" id="hb-quiz-generate-btn" type="submit">
+        <span
+            th:text="${quiz != null} ? 'Generate a new quiz' : 'Generate Quiz'">Generate Quiz</span>
+      </button>
+    </form>
+  </div>
+</main>
+
+<!-- Non-blocking generation indicator: floats over the page so the user can keep reading/
+     scrolling the answers while the quiz is being generated in the background. -->
+<div class="hb-quiz-progress-toast" hidden id="hb-quiz-progress-toast">
+  <div class="hb-quiz-progress-label" id="hb-quiz-progress-label">Thinking…</div>
+  <div class="hb-quiz-progress-bar">
+    <div class="hb-quiz-progress-bar-fill"></div>
+  </div>
+</div>
+
+<!-- Quiz overlay: shown once a quiz is ready. Dims/hides the answers behind an 80% backdrop
+     until the user finishes or closes the quiz. -->
+<div class="hb-quiz-overlay" hidden id="hb-quiz-overlay">
+  <div class="hb-quiz-overlay-backdrop" id="hb-quiz-overlay-backdrop"></div>
+  <div class="hb-quiz-modal">
+    <button aria-label="Close quiz" class="hb-quiz-close" id="hb-quiz-close-btn" type="button">
+      &times;
+    </button>
+    <div class="hb-quiz-widget" id="hb-quiz-widget">
+      <div class="hb-quiz-progress" id="hb-quiz-progress"></div>
+      <div class="hb-quiz-question-text" id="hb-quiz-question-text"></div>
+      <div class="hb-quiz-options" id="hb-quiz-options"></div>
+      <div class="hb-quiz-explanation" hidden id="hb-quiz-explanation"></div>
+      <button class="hb-btn hb-btn--primary" hidden id="hb-quiz-next-btn" type="button">
+        Next question
+      </button>
+      <div class="hb-quiz-summary" hidden id="hb-quiz-summary"></div>
+      <button class="hb-btn hb-btn--primary" hidden id="hb-quiz-finish-btn" type="button">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  var hbQuizData = /*[[${quiz}]]*/ null;
+  /*]]>*/
+</script>
+
+<script th:inline="none">
+  /* Code blocks in rendered markdown: tap to copy */
+  document.querySelectorAll('.hb-answer-rendered pre').forEach(function (pre) {
+    pre.title = 'Tap to copy';
+    pre.addEventListener('click', function () {
+      var code = pre.querySelector('code') ? pre.querySelector('code').textContent
+          : pre.textContent;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(code).catch(function () {
+        });
+      }
+      pre.classList.add('hb-code--flash');
+      setTimeout(function () {
+        pre.classList.remove('hb-code--flash');
+      }, 500);
+    });
+  });
+
+  /* Interactive one-question-at-a-time multiple-choice quiz widget, shown in a modal overlay
+     that dims the answers behind it until the user finishes or closes the quiz.
+
+     Generation happens in the background as two model calls: the first question arrives (and
+     opens this widget) well before the rest are ready, so the poll loop below keeps merging in
+     newly-arrived questions — the widget shows a brief "generating the next question" state if
+     the user reaches the end of what's arrived so far before generation catches up. */
+  (function () {
+    var toastEl = document.getElementById('hb-quiz-progress-toast');
+    var toastLabelEl = document.getElementById('hb-quiz-progress-label');
+    var generateBtn = document.getElementById('hb-quiz-generate-btn');
+    var overlay = document.getElementById('hb-quiz-overlay');
+    var backdrop = document.getElementById('hb-quiz-overlay-backdrop');
+    var closeBtn = document.getElementById('hb-quiz-close-btn');
+    var widget = document.getElementById('hb-quiz-widget');
+    var progressEl = document.getElementById('hb-quiz-progress');
+    var questionEl = document.getElementById('hb-quiz-question-text');
+    var optionsEl = document.getElementById('hb-quiz-options');
+    var explanationEl = document.getElementById('hb-quiz-explanation');
+    var nextBtn = document.getElementById('hb-quiz-next-btn');
+    var summaryEl = document.getElementById('hb-quiz-summary');
+    var finishBtn = document.getElementById('hb-quiz-finish-btn');
+
+    var questions = (hbQuizData && hbQuizData.questions) || [];
+    var targetCount = questions.length;
+    var generationPending = false;
+    var widgetOpened = false;
+    var awaitingMore = false;
+    var index = 0;
+    var score = 0;
+    var answered = false;
+
+    function openOverlay() {
+      overlay.hidden = false;
+      document.body.classList.add('hb-quiz-lock-scroll');
+    }
+
+    function closeOverlay() {
+      overlay.hidden = true;
+      document.body.classList.remove('hb-quiz-lock-scroll');
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeOverlay);
+    }
+    if (backdrop) {
+      backdrop.addEventListener('click', closeOverlay);
+    }
+    if (finishBtn) {
+      finishBtn.addEventListener('click', closeOverlay);
+    }
+
+    function displayCount() {
+      return Math.max(targetCount, questions.length);
+    }
+
+    function renderQuestion() {
+      awaitingMore = false;
+      var q = questions[index];
+      answered = false;
+      progressEl.textContent = 'Question ' + (index + 1) + ' of ' + displayCount();
+      questionEl.textContent = q.question;
+      optionsEl.innerHTML = '';
+      explanationEl.hidden = true;
+      nextBtn.hidden = true;
+      summaryEl.hidden = true;
+      finishBtn.hidden = true;
+      q.options.forEach(function (option, i) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'hb-quiz-option';
+        btn.textContent = option;
+        btn.addEventListener('click', function () {
+          selectOption(i);
+        });
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    function renderWaitingForMore() {
+      awaitingMore = true;
+      progressEl.textContent = 'Question ' + (index + 1) + ' of ' + displayCount();
+      questionEl.textContent = 'Generating the next question…';
+      optionsEl.innerHTML = '';
+      explanationEl.hidden = true;
+      nextBtn.hidden = true;
+      summaryEl.hidden = true;
+      finishBtn.hidden = true;
+    }
+
+    function selectOption(selectedIndex) {
+      if (answered) {
+        return;
+      }
+      answered = true;
+      var q = questions[index];
+      if (selectedIndex === q.correctOptionIndex) {
+        score++;
+      }
+      Array.prototype.forEach.call(optionsEl.children, function (btn, i) {
+        btn.disabled = true;
+        if (i === q.correctOptionIndex) {
+          btn.classList.add('hb-quiz-option--correct');
+        } else if (i === selectedIndex) {
+          btn.classList.add('hb-quiz-option--incorrect');
+        }
+      });
+      if (q.explanation) {
+        explanationEl.textContent = q.explanation;
+        explanationEl.hidden = false;
+      }
+      var isLast = index + 1 === questions.length && !generationPending;
+      nextBtn.textContent = isLast ? 'See results' : 'Next question';
+      nextBtn.hidden = false;
+    }
+
+    function showSummary() {
+      progressEl.textContent = '';
+      questionEl.textContent = '';
+      optionsEl.innerHTML = '';
+      explanationEl.hidden = true;
+      nextBtn.hidden = true;
+      summaryEl.hidden = false;
+      summaryEl.textContent = 'You got ' + score + ' out of ' + questions.length + ' correct.';
+      finishBtn.hidden = false;
+    }
+
+    function advance() {
+      index++;
+      if (index < questions.length) {
+        renderQuestion();
+      } else if (generationPending) {
+        renderWaitingForMore();
+      } else {
+        showSummary();
+      }
+    }
+
+    nextBtn.addEventListener('click', advance);
+
+    function ensureWidgetOpen() {
+      if (widgetOpened || !questions.length) {
+        return;
+      }
+      widgetOpened = true;
+      widget.hidden = false;
+      renderQuestion();
+      openOverlay();
+      if (toastEl) {
+        toastEl.hidden = true;
+      }
+    }
+
+    // A previously-completed quiz, server-rendered at page load: show it immediately, no polling.
+    ensureWidgetOpen();
+
+    if (!generateBtn || !toastEl) {
+      return;
+    }
+    var statusUrl = generateBtn.closest('.hb-quiz-section').dataset.statusUrl;
+    var POLL_INTERVAL_MS = 700;
+
+    function showPendingToast(step) {
+      generateBtn.disabled = true;
+      toastLabelEl.textContent = step || 'Thinking…';
+      toastEl.hidden = false;
+    }
+
+    function poll() {
+      fetch(statusUrl, {cache: 'no-store'})
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (data) {
+        generationPending = !!data.pending;
+        if (data.targetCount) {
+          targetCount = data.targetCount;
+        }
+        if (data.questions && data.questions.length) {
+          questions = data.questions;
+          ensureWidgetOpen();
+          if (awaitingMore && index < questions.length) {
+            renderQuestion();
+          }
+        } else if (generationPending) {
+          showPendingToast(data.step);
+        }
+        if (generationPending) {
+          setTimeout(poll, POLL_INTERVAL_MS);
+          return;
+        }
+        generateBtn.disabled = false;
+        var generateBtnLabel = generateBtn.querySelector('span');
+        if (generateBtnLabel) {
+          generateBtnLabel.textContent = 'Generate a new quiz';
+        }
+        if (!questions.length) {
+          toastEl.hidden = true;
+        } else if (awaitingMore) {
+          if (index < questions.length) {
+            renderQuestion();
+          } else {
+            showSummary();
+          }
+        }
+      });
+    }
+
+    poll();
+  })();
+</script>
+</body>
+</html>

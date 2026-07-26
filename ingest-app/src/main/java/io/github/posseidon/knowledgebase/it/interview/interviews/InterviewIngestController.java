@@ -4,7 +4,6 @@ import io.github.posseidon.knowledgebase.it.interview.dto.interview.InterviewDto
 import io.github.posseidon.knowledgebase.it.interview.dto.interview.InterviewIngestResponse;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController

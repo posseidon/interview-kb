@@ -28,9 +28,9 @@ class SkillXlsxReader {
   private static final int COL_POSITION = 13;
 
   private static String cellText(Cell cell) {
-      if (cell == null) {
-          return null;
-      }
+    if (cell == null) {
+      return null;
+    }
     return switch (cell.getCellType()) {
       case STRING -> cell.getStringCellValue().strip();
       case NUMERIC -> String.valueOf((long) cell.getNumericCellValue());
@@ -39,9 +39,9 @@ class SkillXlsxReader {
   }
 
   private static Integer parseIntOrNull(String text) {
-      if (text == null || text.isBlank()) {
-          return null;
-      }
+    if (text == null || text.isBlank()) {
+      return null;
+    }
     try {
       return Integer.parseInt(text.strip());
     } catch (NumberFormatException e) {
@@ -66,7 +66,9 @@ class SkillXlsxReader {
     }
   }
 
-  /** Returns {@code null} for rows with no data or no path — those aren't a skill entry. */
+  /**
+   * Returns {@code null} for rows with no data or no path — those aren't a skill entry.
+   */
   private Optional<SkillRow> parseRow(org.apache.poi.ss.usermodel.Row r) {
     if (r == null) {
       return Optional.empty();
@@ -82,6 +84,8 @@ class SkillXlsxReader {
     String advanced = cellText(r.getCell(COL_ADVANCED));
     String expert = cellText(r.getCell(COL_EXPERT));
     Integer positionCount = parseIntOrNull(cellText(r.getCell(COL_POSITION)));
-    return Optional.of(new SkillRow(name, path, description, positionCount, novice, intermediate, advanced, expert));
+    return Optional.of(
+        new SkillRow(name, path, description, positionCount, novice, intermediate, advanced,
+            expert));
   }
 }

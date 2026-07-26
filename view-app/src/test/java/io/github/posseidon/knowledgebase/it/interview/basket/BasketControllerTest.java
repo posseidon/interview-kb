@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.github.posseidon.knowledgebase.it.interview.domain.question.Question;
@@ -12,7 +11,6 @@ import io.github.posseidon.knowledgebase.it.interview.domain.skill.Skill;
 import io.github.posseidon.knowledgebase.it.interview.domain.skill.SkillLevel;
 import io.github.posseidon.knowledgebase.it.interview.repo.QuestionRepository;
 import io.github.posseidon.knowledgebase.it.interview.repo.SkillRepository;
-import io.github.posseidon.knowledgebase.it.interview.util.QuestionMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,8 +32,7 @@ class BasketControllerTest {
     skillRepository = mock(SkillRepository.class);
     questionRepository = mock(QuestionRepository.class);
     basket = new Basket();
-    controller = new BasketController(basket, skillRepository, questionRepository,
-        new QuestionMapper());
+    controller = new BasketController(basket, skillRepository, questionRepository);
   }
 
   @Test
@@ -140,6 +137,63 @@ class BasketControllerTest {
     assertThat(view).isEqualTo("basket/checkout");
     assertThat(model.getAttribute("totalQuestions")).isEqualTo(1);
     assertThat(basket.isEmpty()).isTrue();
+  }
+
+  @Test
+  void checkoutDeduplicatesQuestionsSharedAcrossSkillGroups() {
+    Skill java = new Skill("Java", "Java", null, null, null);
+    java.setId(UUID.randomUUID());
+    Skill springBoot = new Skill("Spring Boot", "Spring Boot", null, null, null);
+    springBoot.setId(UUID.randomUUID());
+    basket.put(java.getId(), SkillLevel.INTERMEDIATE);
+    basket.put(springBoot.getId(), SkillLevel.INTERMEDIATE);
+    when(skillRepository.findAllById(anyCollection())).thenReturn(List.of(java, springBoot));
+
+    Question shared = new Question("tagged with both skills", "hash");
+    shared.setId(UUID.randomUUID());
+    when(questionRepository.findBySkillIdAndLevel(java.getId(), "INTERMEDIATE"))
+        .thenReturn(List.of(shared));
+    when(questionRepository.findBySkillIdAndLevel(springBoot.getId(), "INTERMEDIATE"))
+        .thenReturn(List.of(shared));
+
+    Model model = new ExtendedModelMap();
+    controller.checkout(model);
+
+    assertThat(model.getAttribute("totalQuestions")).isEqualTo(1);
+    @SuppressWarnings("unchecked")
+    List<BasketController.SkillResultGroup> groups =
+        (List<BasketController.SkillResultGroup>) model.getAttribute("groups");
+    int renderedRows = groups.stream().mapToInt(g -> g.questions().size()).sum();
+    assertThat(renderedRows).isEqualTo(1);
+  }
+
+  @Test
+  void checkoutNumbersQuestionsSequentiallyAcrossGroups() {
+    Skill java = new Skill("Java", "Java", null, null, null);
+    java.setId(UUID.randomUUID());
+    Skill springBoot = new Skill("Spring Boot", "Spring Boot", null, null, null);
+    springBoot.setId(UUID.randomUUID());
+    basket.put(java.getId(), SkillLevel.INTERMEDIATE);
+    basket.put(springBoot.getId(), SkillLevel.INTERMEDIATE);
+    when(skillRepository.findAllById(anyCollection())).thenReturn(List.of(java, springBoot));
+
+    Question q1 = new Question("q1", "hash1");
+    q1.setId(UUID.randomUUID());
+    Question q2 = new Question("q2", "hash2");
+    q2.setId(UUID.randomUUID());
+    when(questionRepository.findBySkillIdAndLevel(java.getId(), "INTERMEDIATE"))
+        .thenReturn(List.of(q1));
+    when(questionRepository.findBySkillIdAndLevel(springBoot.getId(), "INTERMEDIATE"))
+        .thenReturn(List.of(q2));
+
+    Model model = new ExtendedModelMap();
+    controller.checkout(model);
+
+    @SuppressWarnings("unchecked")
+    List<BasketController.SkillResultGroup> groups =
+        (List<BasketController.SkillResultGroup>) model.getAttribute("groups");
+    assertThat(groups.get(0).questions().get(0).number()).isEqualTo(1);
+    assertThat(groups.get(1).questions().get(0).number()).isEqualTo(2);
   }
 
   @Test
